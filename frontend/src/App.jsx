@@ -92,6 +92,8 @@ export default function App() {
         currentView={view} 
         onViewChange={handleViewChange} 
         psychologistName={profile ? profile.name : ''}
+        onBookClick={() => setShowBookingModal(true)}
+        profile={profile}
       />
 
       {/* Main Content Area */}
@@ -266,8 +268,18 @@ export default function App() {
               Empowering mental wellbeing and emotional resilience.
             </p>
           </div>
-          <div style={{ fontSize: '0.8rem', color: '#8E7E74' }}>
-            &copy; {new Date().getFullYear()} Shamna Clinic. Clinical records secure & encrypted.
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+            {view === 'client' && (
+              <button 
+                onClick={() => handleViewChange('admin')} 
+                style={{ background: 'transparent', border: 'none', color: '#8E7E74', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+              >
+                Psychologist Portal Login
+              </button>
+            )}
+            <div style={{ fontSize: '0.8rem', color: '#8E7E74' }}>
+              &copy; {new Date().getFullYear()} Shamna Clinic. Clinical records secure & encrypted.
+            </div>
           </div>
         </div>
       </footer>

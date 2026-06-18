@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, User, Key, LayoutDashboard } from 'lucide-react';
 
-export default function Navbar({ currentView, onViewChange, psychologistName }) {
+export default function Navbar({ currentView, onViewChange, psychologistName, onBookClick, profile }) {
   return (
     <nav className="navbar">
       <div className="container nav-container">
@@ -20,7 +20,7 @@ export default function Navbar({ currentView, onViewChange, psychologistName }) 
               </button>
               <button 
                 onClick={() => {
-                  // Scroll to doctor card or trigger booking
+                  // Scroll to doctor card
                   const el = document.getElementById('doctor-card-section');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
@@ -30,11 +30,23 @@ export default function Navbar({ currentView, onViewChange, psychologistName }) 
                 About Me
               </button>
               <button 
-                onClick={() => onViewChange('admin')} 
-                className="btn btn-primary btn-sm"
+                onClick={onBookClick}
+                className="btn btn-accent btn-sm"
+                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
               >
-                <Key size={16} /> Psychologist Portal
+                Book Session
               </button>
+              {profile && (
+                <a 
+                  href={`https://wa.me/${profile.contact_phone ? (profile.contact_phone.replace(/\D/g, '').length === 10 ? '91' + profile.contact_phone.replace(/\D/g, '') : profile.contact_phone.replace(/\D/g, '')) : ''}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary btn-sm"
+                  style={{ backgroundColor: '#25D366', color: 'white', borderColor: '#25D366', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                >
+                  WhatsApp Chat
+                </a>
+              )}
             </>
           ) : (
             <>
