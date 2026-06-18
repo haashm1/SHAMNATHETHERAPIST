@@ -208,7 +208,7 @@ export default function CaseSheetEditor({ initialCaseData, onBackToBookings }) {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '2rem', height: '100%' }}>
+    <div className="casesheet-grid">
       {/* Sidebar: Case Sheets Archive */}
       <div style={{ display: 'flex', flexType: 'column', flexDirection: 'column', gap: '1rem', background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', alignSelf: 'start' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -270,7 +270,7 @@ export default function CaseSheetEditor({ initialCaseData, onBackToBookings }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         
         {/* Document Properties Header */}
-        <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', alignItems: 'end' }}>
+        <div className="casesheet-header-grid">
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label style={{ fontSize: '0.8rem' }}>Document Title</label>
             <input 

@@ -50,7 +50,7 @@ export default function AdminClients({ bookings, onStartCaseSheet, onOpenCaseShe
     : [];
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: selectedClientEmail ? '1fr 1.2fr' : '1fr', gap: '2rem' }}>
+    <div className={`clients-layout-grid ${selectedClientEmail ? '' : 'single-col'}`}>
       
       {/* Left Column: Unique Client List */}
       <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>

@@ -182,7 +182,7 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
           Professional Information
         </h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div className="form-row-2col">
           <div className="form-group">
             <label>Full Professional Name</label>
             <input 
@@ -233,7 +233,7 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div className="form-row-2col">
           <div className="form-group">
             <label>Education & Qualifications</label>
             <input 
@@ -264,7 +264,7 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
           Contact & Clinic Settings
         </h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div className="form-row-2col">
           <div className="form-group">
             <label>Contact Email</label>
             <input 
