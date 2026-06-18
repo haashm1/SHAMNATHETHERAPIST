@@ -274,12 +274,12 @@ app.post('/api/bookings', (req, res) => {
           psychologist_id: activePsyId
         };
 
-        // Dispatch mail, mobile SMS, and calendar notifications (Only sent after therapist configures/sends the meet link)
-        /*
-        sendBookingNotifications(newBooking).catch(err => {
+        // Dispatch mail, mobile SMS, and calendar notifications
+        try {
+          await sendBookingNotifications(newBooking);
+        } catch (err) {
           console.error("Error dispatching notifications:", err);
-        });
-        */
+        }
 
         const gcalUrl = generateGoogleCalendarUrl(newBooking);
 
@@ -360,7 +360,7 @@ app.patch('/api/bookings/:id', (req, res) => {
         SET status = ?, booking_date = ?, booking_time = ?, notes = ?, meet_link = ?, psychologist_id = ?
         WHERE id = ?
       `;
-      db.run(updateQuery, [newStatus, newDate, newTime, newNotes, finalMeetLink, newPsyId, id], function (err) {
+      db.run(updateQuery, [newStatus, newDate, newTime, newNotes, finalMeetLink, newPsyId, id], async function (err) {
         if (err) {
           return res.status(500).json({ error: 'Database error updating booking.' });
         }
@@ -384,9 +384,11 @@ app.patch('/api/bookings/:id', (req, res) => {
             meet_link: finalMeetLink,
             psychologist_id: newPsyId
           };
-          sendBookingNotifications(updatedBooking).catch(err => {
+          try {
+            await sendBookingNotifications(updatedBooking);
+          } catch (err) {
             console.error("Update notification error:", err);
-          });
+          }
         }
 
         res.json({ 
