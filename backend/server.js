@@ -254,7 +254,7 @@ app.post('/api/bookings', (req, res) => {
         activePsyId
       ];
 
-      db.run(insertQuery, params, function (err) {
+      db.run(insertQuery, params, async function (err) {
         if (err) {
           console.error("Database error creating booking:", err);
           return res.status(500).json({ error: 'Database error creating booking.' });
@@ -276,7 +276,7 @@ app.post('/api/bookings', (req, res) => {
 
         // Dispatch mail, mobile SMS, and calendar notifications
         try {
-          await sendBookingNotifications(newBooking);
+          await sendBookingNotifications(newBooking, true);
         } catch (err) {
           console.error("Error dispatching notifications:", err);
         }
@@ -365,11 +365,8 @@ app.patch('/api/bookings/:id', (req, res) => {
           return res.status(500).json({ error: 'Database error updating booking.' });
         }
         
-        // Trigger notification only if a meet link exists, and the link changed or a reschedule occurred
-        const meetLinkChanged = meet_link !== undefined && meet_link !== currentBooking.meet_link;
-        const shouldNotify = finalMeetLink && 
-                             finalMeetLink.trim() !== '' && 
-                             (timeChanged || therapistChanged || meetLinkChanged);
+        // Trigger notification only on reschedule (date/time change) or therapist change, NOT when only meet_link changes
+        const shouldNotify = (timeChanged || therapistChanged);
 
         if (shouldNotify && newStatus !== 'cancelled') {
           const updatedBooking = {
@@ -508,7 +505,7 @@ app.post('/api/bookings/:id/email-link', (req, res) => {
       return res.status(400).json({ error: 'Cannot send email: No Google Meet link is configured for this booking.' });
     }
 
-    sendBookingNotifications(booking)
+    sendBookingNotifications(booking, false, true)
       .then(() => {
         res.json({ message: 'Meeting link successfully emailed to client and therapist!' });
       })

@@ -938,3 +938,138 @@ button {
   }
 }
 
+/* Custom Interactive Calendar Styles */
+.custom-calendar {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: var(--bg-card);
+  margin-top: 0.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-month-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+}
+
+.calendar-nav-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition);
+  outline: none;
+}
+
+.calendar-nav-btn:hover {
+  background: var(--bg-accent);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.calendar-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.calendar-day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-primary);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.calendar-day-cell:hover:not(:disabled) {
+  background: var(--bg-secondary);
+}
+
+.calendar-day-cell.selected {
+  background: var(--accent) !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.calendar-day-cell.today {
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.calendar-day-cell.today.selected {
+  color: white;
+  background: var(--accent);
+}
+
+.calendar-day-cell.fully-booked {
+  background-color: rgba(201, 122, 122, 0.1) !important;
+  border: 1px solid var(--error) !important;
+  color: var(--error) !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+}
+
+.calendar-day-cell:disabled {
+  color: var(--border-color);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.calendar-day-cell.padding-day {
+  color: #e2e2e2;
+  text-decoration: none;
+  cursor: default;
+}
+
+/* Custom Reusable Datepicker Popover Styles */
+.custom-datepicker-container {
+  width: 100%;
+}
+
+.datepicker-trigger {
+  background-color: var(--bg-primary);
+  transition: var(--transition);
+}
+
+.datepicker-trigger:hover {
+  border-color: var(--border-focus);
+  background-color: var(--bg-card);
+}
+
+.custom-datepicker-popover {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+

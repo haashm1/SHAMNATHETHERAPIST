@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Edit2, Ban, AlertTriangle, FileText, CheckCircle, Plus } from 'lucide-react';
+import CustomDatePicker from './CustomDatePicker';
 
 const formatDateToDMY = (dateStr) => {
   if (!dateStr) return '';
@@ -211,12 +212,10 @@ export default function AdminBookings({ bookings, onRefresh, onStartCaseSheet, o
           </div>
           <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: '150px' }}>
             <label style={{ fontSize: '0.8rem' }}>Date to Block</label>
-            <input 
-              type="date" 
-              className="form-control" 
+            <CustomDatePicker 
               value={blockDate}
-              onChange={(e) => setBlockDate(e.target.value)}
-              required 
+              onChange={setBlockDate}
+              placeholder="Select Date"
             />
           </div>
           <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: '150px' }}>
@@ -350,9 +349,25 @@ export default function AdminBookings({ bookings, onRefresh, onStartCaseSheet, o
                                   {booking.meet_link && (
                                     <button 
                                       onClick={() => handleEmailMeetLink(booking.id)} 
-                                      style={{ background: 'transparent', border: 'none', color: 'var(--success)', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline', padding: 0, marginLeft: '0.8rem' }}
+                                      className="btn btn-primary"
+                                      style={{ 
+                                        padding: '0.2rem 0.6rem', 
+                                        fontSize: '0.75rem', 
+                                        height: '24px', 
+                                        borderRadius: '4px',
+                                        marginLeft: '0.8rem',
+                                        backgroundColor: 'var(--success)',
+                                        borderColor: 'var(--success)',
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.2rem',
+                                        transform: 'none',
+                                        boxShadow: 'none'
+                                      }}
                                     >
-                                      Email Link
+                                      Send Link to Client
                                     </button>
                                   )}
                                 </>
@@ -487,12 +502,10 @@ export default function AdminBookings({ bookings, onRefresh, onStartCaseSheet, o
 
               <div className="form-group">
                 <label>New Booking Date</label>
-                <input
-                  type="date"
-                  className="form-control"
+                <CustomDatePicker 
                   value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                  required
+                  onChange={setNewDate}
+                  placeholder="Select Date"
                 />
               </div>
 

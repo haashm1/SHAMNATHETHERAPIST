@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import CustomDatePicker from './CustomDatePicker';
 
 const formatDateToDMY = (dateStr) => {
   if (!dateStr) return '';
@@ -390,11 +391,10 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
               )}
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', maxWidth: '300px', marginTop: '0.5rem' }}>
-              <input 
-                type="date" 
-                className="form-control" 
+              <CustomDatePicker 
                 value={newUnavailableDate} 
-                onChange={(e) => setNewUnavailableDate(e.target.value)} 
+                onChange={setNewUnavailableDate} 
+                placeholder="Select Date"
               />
               <button 
                 type="button" 

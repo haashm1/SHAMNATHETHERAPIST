@@ -148,7 +148,7 @@ const transporter = nodemailer.createTransport({
 /**
  * Dispatch booking notifications to therapist and client
  */
-export async function sendBookingNotifications(booking) {
+export async function sendBookingNotifications(booking, isInitial = false, isMeetLinkOnly = false) {
   const db = new sqlite3.Database(dbPath);
   
   db.get('SELECT * FROM profile WHERE id = ?', [booking.psychologist_id], async (err, therapist) => {
@@ -162,52 +162,132 @@ export async function sendBookingNotifications(booking) {
     }
 
     const gcalUrl = generateGoogleCalendarUrl(booking);
-    const meetLink = booking.meet_link || generateMockMeetLink();
     const timestamp = new Date().toLocaleString();
 
-    // 1. Prepare email to therapist
-    const therapistMailOptions = {
-      from: `"Shamna Clinic Support" <therapist.shamna@gmail.com>`,
-      to: therapist.contact_email,
-      subject: `[Alert] New Session Booked: ${booking.client_name}`,
-      text: `Dear ${therapist.name},\n\n` +
-            `A new therapy session has been successfully booked with you.\n\n` +
-            `Client Details:\n` +
-            `- Name: ${booking.client_name}\n` +
-            `- Email: ${booking.client_email}\n` +
-            `- Phone: ${booking.client_phone}\n` +
-            `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
-            `- Time: ${booking.booking_time} (50 minutes)\n` +
-            `- Google Meet Link: ${meetLink}\n\n` +
-            `Session Notes:\n` +
-            `"${booking.notes || 'None provided.'}"\n\n` +
-            `Google Calendar Integration:\n` +
-            `Add this session directly to your Google Calendar by clicking the link below:\n` +
-            `${gcalUrl}\n\n` +
-            `-----------------------------------------\n` +
-            `This is an automated clinical notification.`
-    };
+    let therapistMailOptions, clientMailOptions;
 
-    // 2. Prepare email to client
-    const clientMailOptions = {
-      from: `"Shamna Clinic Support" <therapist.shamna@gmail.com>`,
-      to: booking.client_email,
-      subject: `Session Confirmed: Appointment with ${therapist.name}`,
-      text: `Dear ${booking.client_name},\n\n` +
-            `Your consultation session with ${therapist.name} has been successfully booked.\n\n` +
-            `Appointment Details:\n` +
-            `- Therapist: ${therapist.name} (${therapist.title || 'Clinical Psychologist'})\n` +
-            `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
-            `- Time: ${booking.booking_time}\n` +
-            `- Duration: 50 minutes\n` +
-            `- Google Meet Link: ${meetLink}\n\n` +
-            `Please click the Google Meet link above at the time of your session to join the video call.\n\n` +
-            `Add to Google Calendar:\n` +
-            `${gcalUrl}\n\n` +
-            `We look forward to seeing you.\n\n` +
-            `Warm regards,\n` +
-            `Shamna Clinic Support`
-    };
+    if (isMeetLinkOnly) {
+      // 1. Separate Google Meet Link Email
+      const meetLink = booking.meet_link || 'TBD';
+      
+      therapistMailOptions = {
+        from: `"Shamna Clinic Support" <therapist.shamna@gmail.com>`,
+        to: therapist.contact_email,
+        subject: `[Sent] Google Meet Link Shared: ${booking.client_name}`,
+        text: `Dear ${therapist.name},\n\n` +
+              `The Google Meet link for your therapy session with ${booking.client_name} has been successfully sent to the client.\n\n` +
+              `Session Details:\n` +
+              `- Client: ${booking.client_name}\n` +
+              `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
+              `- Time: ${booking.booking_time}\n` +
+              `- Google Meet Link: ${meetLink}\n\n` +
+              `-----------------------------------------\n` +
+              `This is an automated clinical notification.`
+      };
+
+      clientMailOptions = {
+        from: `"Shamna Clinic Support" <therapist.shamna@gmail.com>`,
+        to: booking.client_email,
+        subject: `Google Meet Access Link: Session with ${therapist.name}`,
+        text: `Dear ${booking.client_name},\n\n` +
+              `The Google Meet access link for your consultation session with ${therapist.name} has been assigned.\n\n` +
+              `Session Details:\n` +
+              `- Therapist: ${therapist.name} (${therapist.title || 'Clinical Psychologist'})\n` +
+              `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
+              `- Time: ${booking.booking_time} (50 minutes)\n` +
+              `- Google Meet Link: ${meetLink}\n\n` +
+              `Please click the link above at the time of your appointment to join the video session.\n\n` +
+              `Add to Google Calendar:\n` +
+              `${gcalUrl}\n\n` +
+              `Warm regards,\n` +
+              `Shamna Clinic Support`
+      };
+
+    } else if (isInitial) {
+      // 2. Initial Booking Confirmation (NO Google Meet Link)
+      therapistMailOptions = {
+        from: `"Shamna Clinic Support" <therapist.shamna@gmail.com>`,
+        to: therapist.contact_email,
+        subject: `[Alert] New Session Booked: ${booking.client_name}`,
+        text: `Dear ${therapist.name},\n\n` +
+              `A new therapy session has been successfully booked with you.\n\n` +
+              `Client Details:\n` +
+              `- Name: ${booking.client_name}\n` +
+              `- Email: ${booking.client_email}\n` +
+              `- Phone: ${booking.client_phone}\n` +
+              `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
+              `- Time: ${booking.booking_time} (50 minutes)\n` +
+              `- Google Meet Link: Not assigned yet (Please go to the admin panel, edit the booking to set the link, and click 'Send Link to Client').\n\n` +
+              `Session Notes:\n` +
+              `"${booking.notes || 'None provided.'}"\n\n` +
+              `Google Calendar Integration:\n` +
+              `Add this session to your calendar (without Meet Link for now):\n` +
+              `${gcalUrl}\n\n` +
+              `-----------------------------------------\n` +
+              `This is an automated clinical notification.`
+      };
+
+      clientMailOptions = {
+        from: `"Shamna Clinic Support" <therapist.shamna@gmail.com>`,
+        to: booking.client_email,
+        subject: `Appointment Registered: Consultation with ${therapist.name}`,
+        text: `Dear ${booking.client_name},\n\n` +
+              `Your consultation session with ${therapist.name} has been successfully registered.\n\n` +
+              `Appointment Details:\n` +
+              `- Therapist: ${therapist.name} (${therapist.title || 'Clinical Psychologist'})\n` +
+              `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
+              `- Time: ${booking.booking_time}\n` +
+              `- Duration: 50 minutes\n` +
+              `- Google Meet Link: Will be shared with you separately once confirmed by the therapist.\n\n` +
+              `Add to Google Calendar:\n` +
+              `${gcalUrl}\n\n` +
+              `We look forward to seeing you.\n\n` +
+              `Warm regards,\n` +
+              `Shamna Clinic Support`
+      };
+
+    } else {
+      // 3. Rescheduled or standard update (Keep meet link if exists)
+      const meetLink = booking.meet_link || 'Will be shared separately once confirmed by the therapist.';
+
+      therapistMailOptions = {
+        from: `"Shamna Clinic Support" <therapist.shamna@gmail.com>`,
+        to: therapist.contact_email,
+        subject: `[Rescheduled] Session Updated: ${booking.client_name}`,
+        text: `Dear ${therapist.name},\n\n` +
+              `A therapy session with you has been rescheduled.\n\n` +
+              `Updated Details:\n` +
+              `- Client: ${booking.client_name}\n` +
+              `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
+              `- Time: ${booking.booking_time} (50 minutes)\n` +
+              `- Google Meet Link: ${booking.meet_link || 'Not assigned yet'}\n\n` +
+              `Session Notes:\n" ${booking.notes || 'None provided.'}"\n\n` +
+              `Google Calendar Integration:\n` +
+              `Update this session in your Google Calendar:\n` +
+              `${gcalUrl}\n\n` +
+              `-----------------------------------------\n` +
+              `This is an automated clinical notification.`
+      };
+
+      clientMailOptions = {
+        from: `"Shamna Clinic Support" <therapist.shamna@gmail.com>`,
+        to: booking.client_email,
+        subject: `Session Rescheduled: Appointment with ${therapist.name}`,
+        text: `Dear ${booking.client_name},\n\n` +
+              `Your consultation session with ${therapist.name} has been rescheduled.\n\n` +
+              `Updated Appointment Details:\n` +
+              `- Therapist: ${therapist.name} (${therapist.title || 'Clinical Psychologist'})\n` +
+              `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
+              `- Time: ${booking.booking_time}\n` +
+              `- Duration: 50 minutes\n` +
+              `- Google Meet Link: ${meetLink}\n\n` +
+              `Add to Google Calendar:\n` +
+              `${gcalUrl}\n\n` +
+              `We look forward to seeing you.\n\n` +
+              `Warm regards,\n` +
+              `Shamna Clinic Support`
+      };
+    }
 
     try {
       // Send both emails using Nodemailer
@@ -215,7 +295,7 @@ export async function sendBookingNotifications(booking) {
         transporter.sendMail(therapistMailOptions),
         transporter.sendMail(clientMailOptions)
       ]);
-      console.log(`[Notification] Real booking confirmation emails successfully sent to therapist (${therapist.contact_email}) and client (${booking.client_email}).`);
+      console.log(`[Notification] Emails successfully dispatched (isMeetLinkOnly=${isMeetLinkOnly}, isInitial=${isInitial}).`);
     } catch (mailError) {
       console.error("Error sending email notification through nodemailer:", mailError);
     }
@@ -227,7 +307,7 @@ EMAIL NOTIFICATION SENT TO THERAPIST
 =========================================
 Timestamp: ${timestamp}
 To: ${therapist.contact_email}
-Subject: [Alert] New Session Booked: ${booking.client_name}
+Subject: ${therapistMailOptions.subject}
 ${therapistMailOptions.text}
 =========================================
 `;
@@ -238,7 +318,7 @@ EMAIL CONFIRMATION SENT TO CLIENT
 =========================================
 Timestamp: ${timestamp}
 To: ${booking.client_email}
-Subject: Session Confirmed: Appointment with ${therapist.name}
+Subject: ${clientMailOptions.subject}
 ${clientMailOptions.text}
 =========================================
 `;
@@ -249,7 +329,7 @@ MOBILE SMS NOTIFICATION SENT TO THERAPIST
 =========================================
 Timestamp: ${timestamp}
 To: ${therapist.name} Mobile (${therapist.contact_phone})
-Alert: New session booked by ${booking.client_name} on ${formatDateToDMY(booking.booking_date)} at ${booking.booking_time}. 
+Alert: Session with ${booking.client_name} update. Status details generated.
 =========================================
 `;
 

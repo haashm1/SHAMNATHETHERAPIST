@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { X, Calendar, Clock, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const formatDateToDMY = (dateStr) => {
   if (!dateStr) return '';
@@ -38,6 +38,164 @@ export default function BookingModal({ onClose, prefillData }) {
   const [gcalUrl, setGcalUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [confirmedBookingDetails, setConfirmedBookingDetails] = useState(null);
+  
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const renderCalendar = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const prevTotalDays = new Date(year, month, 0).getDate();
+
+    const days = [];
+
+    // Weekdays headers
+    const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+    // Prev month padding
+    for (let i = firstDay - 1; i >= 0; i--) {
+      days.push({
+        day: prevTotalDays - i,
+        isPadding: true,
+        dateStr: null
+      });
+    }
+
+    // Current month days
+    for (let i = 1; i <= totalDays; i++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      const isUnavailable = therapistUnavailableDates.includes(dateStr);
+      const isPast = dateStr < getMinDate();
+
+      // Check if all slots are fully booked
+      const bookingsOnDate = existingBookings.filter(
+        b => b.booking_date === dateStr && 
+             b.status !== 'cancelled' && 
+             parseInt(b.psychologist_id, 10) === parseInt(selectedPsychologistId, 10)
+      );
+      const isFullyBooked = bookingsOnDate.length >= therapistSlots.length;
+
+      days.push({
+        day: i,
+        isPadding: false,
+        dateStr,
+        disabled: isUnavailable || isPast || isFullyBooked,
+        isFullyBooked
+      });
+    }
+
+    // Next month padding
+    const remainingSlots = 42 - days.length;
+    for (let i = 1; i <= remainingSlots; i++) {
+      days.push({
+        day: i,
+        isPadding: true,
+        dateStr: null
+      });
+    }
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const prevMonth = () => {
+      const today = new Date();
+      if (year > today.getFullYear() || (year === today.getFullYear() && month > today.getMonth())) {
+        setCurrentMonth(new Date(year, month - 1, 1));
+      }
+    };
+
+    const nextMonth = () => {
+      setCurrentMonth(new Date(year, month + 1, 1));
+    };
+
+    return (
+      <div className="custom-calendar">
+        <div className="calendar-header">
+          <button type="button" className="calendar-nav-btn" onClick={prevMonth}>
+            <ChevronLeft size={14} />
+          </button>
+          <span className="calendar-month-title">{monthNames[month]} {year}</span>
+          <button type="button" className="calendar-nav-btn" onClick={nextMonth}>
+            <ChevronRight size={14} />
+          </button>
+        </div>
+        <div className="calendar-weekdays">
+          {weekdays.map(w => <span key={w}>{w}</span>)}
+        </div>
+        <div className="calendar-days-grid">
+          {days.map((item, idx) => {
+            if (item.isPadding) {
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  className="calendar-day-cell padding-day"
+                  disabled
+                >
+                  {item.day}
+                </button>
+              );
+            }
+            const isSelected = bookingDate === item.dateStr;
+            const isToday = item.dateStr === new Date().toISOString().split('T')[0];
+            const isFullyBooked = item.isFullyBooked;
+
+            let cellClass = 'calendar-day-cell';
+            if (isSelected) cellClass += ' selected';
+            if (isToday) cellClass += ' today';
+            if (isFullyBooked) cellClass += ' fully-booked';
+
+            return (
+              <button
+                key={idx}
+                type="button"
+                className={cellClass}
+                disabled={item.disabled}
+                onClick={() => setBookingDate(item.dateStr)}
+                title={isFullyBooked ? 'Fully Booked' : undefined}
+              >
+                {item.day}
+              </button>
+            );
+          })}
+        </div>
+        
+        {/* Calendar Legend */}
+        <div className="calendar-legend" style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          marginTop: '1rem',
+          paddingTop: '0.75rem',
+          borderTop: '1px solid var(--border-color)',
+          fontSize: '0.75rem',
+          color: 'var(--text-secondary)',
+          flexWrap: 'wrap',
+          gap: '0.5rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', border: '1px solid var(--accent)' }}></span>
+            <span>Available</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent)' }}></span>
+            <span>Selected</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'rgba(200, 100, 100, 0.15)', border: '1px solid var(--error)' }}></span>
+            <span>Fully Booked</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f0ebe4', textDecoration: 'line-through' }}></span>
+            <span>Holiday / Past</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Fetch all existing bookings & psychologists
   useEffect(() => {
@@ -406,16 +564,8 @@ export default function BookingModal({ onClose, prefillData }) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="booking-date">Select Session Date</label>
-                <input 
-                  type="date" 
-                  id="booking-date" 
-                  className="form-control"
-                  min={getMinDate()}
-                  value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
-                  required 
-                />
+                <label style={{ fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>Select Session Date</label>
+                {renderCalendar()}
               </div>
 
               {bookingDate && (

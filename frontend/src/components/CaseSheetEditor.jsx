@@ -3,6 +3,7 @@ import {
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   List, ListOrdered, Save, Trash2, Printer, Plus, FileText, Check, AlertCircle, ArrowLeft
 } from 'lucide-react';
+import CustomDatePicker from './CustomDatePicker';
 
 const formatDateToDMY = (dateStr) => {
   if (!dateStr) return '';
@@ -293,11 +294,10 @@ export default function CaseSheetEditor({ initialCaseData, onBackToBookings }) {
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label style={{ fontSize: '0.8rem' }}>Session Date</label>
-            <input 
-              type="date" 
-              className="form-control" 
+            <CustomDatePicker 
               value={caseDate}
-              onChange={(e) => setCaseDate(e.target.value)}
+              onChange={setCaseDate}
+              placeholder="Select Date"
             />
           </div>
         </div>
