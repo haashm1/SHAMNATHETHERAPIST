@@ -8,6 +8,7 @@ backend/psychologist.db
 
 # Sensitive credentials & secrets
 backend/google-credentials.json
+backend/firebase-service-account.json
 backend/.env
 .env
 .env.local

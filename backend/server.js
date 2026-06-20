@@ -4,7 +4,22 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import db from './database.js';
+import {
+  getProfiles,
+  getProfile,
+  createProfile,
+  updateProfile,
+  getBookings,
+  getBooking,
+  createBooking,
+  updateBooking,
+  checkBookingConflict,
+  getCaseSheets,
+  getCaseSheet,
+  createCaseSheet,
+  updateCaseSheet,
+  deleteCaseSheet
+} from './database.js';
 import { sendBookingNotifications, generateGoogleCalendarUrl, generateMockMeetLink, createRealGoogleMeetEvent } from './notifications.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -67,27 +82,24 @@ if (!fs.existsSync(defaultImagePath)) {
 // ==========================================
 
 // Get Psychologist Profiles (individual or list)
-app.get('/api/profile', (req, res) => {
+app.get('/api/profile', async (req, res) => {
   const { id } = req.query;
-  if (id) {
-    db.get('SELECT * FROM profile WHERE id = ?', [id], (err, row) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error fetching profile.' });
-      }
+  try {
+    if (id) {
+      const row = await getProfile(id);
       res.json(row);
-    });
-  } else {
-    db.all('SELECT * FROM profile', (err, rows) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error fetching profiles.' });
-      }
+    } else {
+      const rows = await getProfiles();
       res.json(rows);
-    });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error fetching profile(s).' });
   }
 });
 
 // Update or Create Psychologist Profile
-app.post('/api/profile', upload.single('photo'), (req, res) => {
+app.post('/api/profile', upload.single('photo'), async (req, res) => {
   const {
     id,
     name,
@@ -104,15 +116,8 @@ app.post('/api/profile', upload.single('photo'), (req, res) => {
     unavailable_dates
   } = req.body;
 
-  if (id && id !== 'new') {
-    // Update existing profile
-    let query = `
-      UPDATE profile
-      SET name = ?, title = ?, bio = ?, specialties = ?, education = ?, experience = ?,
-          contact_email = ?, contact_phone = ?, address = ?, meet_link = ?,
-          available_slots = ?, unavailable_dates = ?
-    `;
-    const params = [
+  try {
+    const profileData = {
       name,
       title,
       bio,
@@ -123,67 +128,29 @@ app.post('/api/profile', upload.single('photo'), (req, res) => {
       contact_phone,
       address,
       meet_link,
-      available_slots || '',
-      unavailable_dates || ''
-    ];
+      available_slots: available_slots || '',
+      unavailable_dates: unavailable_dates || ''
+    };
 
     if (req.file) {
-      query += `, photo_url = ?`;
-      params.push(`/uploads/${req.file.filename}`);
+      profileData.photo_url = `/uploads/${req.file.filename}`;
     }
 
-    query += ` WHERE id = ?`;
-    params.push(id);
-
-    db.run(query, params, function (err) {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Database error updating profile.' });
+    if (id && id !== 'new') {
+      // Update existing profile
+      const updatedProfile = await updateProfile(id, profileData);
+      res.json({ message: 'Profile updated successfully!', profile: updatedProfile });
+    } else {
+      // Create new profile
+      if (!profileData.photo_url) {
+        profileData.photo_url = '/uploads/default-doctor.jpg';
       }
-      
-      db.get('SELECT * FROM profile WHERE id = ?', [id], (err, row) => {
-        if (err) {
-          return res.status(500).json({ error: 'Database error fetching updated profile.' });
-        }
-        res.json({ message: 'Profile updated successfully!', profile: row });
-      });
-    });
-  } else {
-    // Create new profile
-    const photoUrl = req.file ? `/uploads/${req.file.filename}` : '/uploads/default-doctor.jpg';
-    const query = `
-      INSERT INTO profile (name, title, bio, specialties, education, experience, photo_url, contact_email, contact_phone, address, meet_link, available_slots, unavailable_dates)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    const params = [
-      name,
-      title,
-      bio,
-      specialties,
-      education,
-      experience,
-      photoUrl,
-      contact_email,
-      contact_phone,
-      address,
-      meet_link,
-      available_slots || '',
-      unavailable_dates || ''
-    ];
-
-    db.run(query, params, function (err) {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Database error creating profile.' });
-      }
-      const newId = this.lastID;
-      db.get('SELECT * FROM profile WHERE id = ?', [newId], (err, row) => {
-        if (err) {
-          return res.status(500).json({ error: 'Database error fetching new profile.' });
-        }
-        res.json({ message: 'Profile created successfully!', profile: row });
-      });
-    });
+      const newProfile = await createProfile(profileData);
+      res.json({ message: 'Profile created successfully!', profile: newProfile });
+    }
+  } catch (err) {
+    console.error("Error creating/updating profile:", err);
+    res.status(500).json({ error: 'Database error saving profile.' });
   }
 });
 
@@ -192,17 +159,18 @@ app.post('/api/profile', upload.single('photo'), (req, res) => {
 // ==========================================
 
 // Get All Bookings
-app.get('/api/bookings', (req, res) => {
-  db.all('SELECT * FROM bookings ORDER BY booking_date DESC, booking_time ASC', (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error fetching bookings.' });
-    }
+app.get('/api/bookings', async (req, res) => {
+  try {
+    const rows = await getBookings();
     res.json(rows);
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error fetching bookings.' });
+  }
 });
 
 // Create Booking (with Conflict Checking)
-app.post('/api/bookings', (req, res) => {
+app.post('/api/bookings', async (req, res) => {
   const { client_name, client_email, client_phone, booking_date, booking_time, duration_minutes, notes, meet_link, psychologist_id } = req.body;
 
   if (!client_name || !client_email || !client_phone || !booking_date || !booking_time) {
@@ -211,21 +179,11 @@ app.post('/api/bookings', (req, res) => {
 
   const activePsyId = psychologist_id ? parseInt(psychologist_id, 10) : 1;
 
-  // Conflict detection: Is there a booking at the same date, time, and therapist that is not cancelled?
-  const checkQuery = `
-    SELECT * FROM bookings
-    WHERE booking_date = ?
-      AND booking_time = ?
-      AND status != 'cancelled'
-      AND psychologist_id = ?
-  `;
+  try {
+    // Conflict detection: Is there a booking at the same date, time, and therapist that is not cancelled?
+    const conflict = await checkBookingConflict(booking_date, booking_time, activePsyId);
 
-  db.get(checkQuery, [booking_date, booking_time, activePsyId], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error validation.' });
-    }
-
-    if (row) {
+    if (conflict) {
       return res.status(400).json({
         error: 'Conflict Detected',
         message: `The slot on ${booking_date} at ${booking_time} is already booked for this therapist. Please select a different time slot.`
@@ -233,77 +191,53 @@ app.post('/api/bookings', (req, res) => {
     }
 
     // Get therapist details
-    db.get('SELECT * FROM profile WHERE id = ?', [activePsyId], async (err, therapist) => {
-      // Meet link starts as null or whatever is explicitly provided (no auto-generation)
-      const activeMeetLink = meet_link || null;
+    const therapist = await getProfile(activePsyId);
 
-      // No conflict, proceed to insert
-      const insertQuery = `
-        INSERT INTO bookings (client_name, client_email, client_phone, booking_date, booking_time, duration_minutes, notes, meet_link, psychologist_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      const params = [
-        client_name,
-        client_email,
-        client_phone,
-        booking_date,
-        booking_time,
-        duration_minutes || 50,
-        notes || '',
-        activeMeetLink,
-        activePsyId
-      ];
+    // Meet link starts as null or whatever is explicitly provided (no auto-generation)
+    const activeMeetLink = meet_link || null;
 
-      db.run(insertQuery, params, async function (err) {
-        if (err) {
-          console.error("Database error creating booking:", err);
-          return res.status(500).json({ error: 'Database error creating booking.' });
-        }
-        
-        const newBooking = {
-          id: this.lastID,
-          client_name,
-          client_email,
-          client_phone,
-          booking_date,
-          booking_time,
-          duration_minutes: duration_minutes || 50,
-          notes: notes || '',
-          status: 'booked',
-          meet_link: activeMeetLink,
-          psychologist_id: activePsyId
-        };
-
-        // Dispatch mail, mobile SMS, and calendar notifications
-        try {
-          await sendBookingNotifications(newBooking, true);
-        } catch (err) {
-          console.error("Error dispatching notifications:", err);
-        }
-
-        const gcalUrl = generateGoogleCalendarUrl(newBooking);
-
-        res.status(201).json({
-          message: 'Booking created successfully!',
-          bookingId: this.lastID,
-          booking: newBooking,
-          googleCalendarUrl: gcalUrl
-        });
-      });
+    // No conflict, proceed to insert
+    const newBooking = await createBooking({
+      client_name,
+      client_email,
+      client_phone,
+      booking_date,
+      booking_time,
+      duration_minutes,
+      notes,
+      meet_link: activeMeetLink,
+      psychologist_id: activePsyId
     });
-  });
+
+    // Dispatch mail, mobile SMS, and calendar notifications
+    try {
+      await sendBookingNotifications(newBooking, true);
+    } catch (err) {
+      console.error("Error dispatching notifications:", err);
+    }
+
+    const gcalUrl = generateGoogleCalendarUrl(newBooking);
+
+    res.status(201).json({
+      message: 'Booking created successfully!',
+      bookingId: newBooking.id,
+      booking: newBooking,
+      googleCalendarUrl: gcalUrl
+    });
+  } catch (err) {
+    console.error("Database error creating booking:", err);
+    res.status(500).json({ error: 'Database error creating booking.' });
+  }
 });
 
 // Update Booking Status or Reschedule (with Conflict checking for rescheduling)
-app.patch('/api/bookings/:id', (req, res) => {
+app.patch('/api/bookings/:id', async (req, res) => {
   const { id } = req.params;
   const { status, booking_date, booking_time, notes, meet_link, psychologist_id } = req.body;
 
-  // Fetch current booking first
-  db.get('SELECT * FROM bookings WHERE id = ?', [id], (err, currentBooking) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error fetching booking.' });
-    }
+  try {
+    // Fetch current booking first
+    const currentBooking = await getBooking(id);
     if (!currentBooking) {
       return res.status(404).json({ error: 'Booking not found.' });
     }
@@ -319,83 +253,64 @@ app.patch('/api/bookings/:id', (req, res) => {
     const therapistChanged = newPsyId !== currentBooking.psychologist_id;
     const statusReopened = currentBooking.status === 'cancelled' && newStatus !== 'cancelled';
 
-    // Get therapist details if needed (no calendar API auto-generation)
-    db.get('SELECT * FROM profile WHERE id = ?', [newPsyId], async (err, therapist) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error fetching therapist details.' });
-      }
+    // Get therapist details if needed
+    const therapist = await getProfile(newPsyId);
 
-      // Meet link is kept as-is unless explicitly updated in req.body
-      const activeMeetLink = meet_link !== undefined ? meet_link : currentBooking.meet_link;
+    // Meet link is kept as-is unless explicitly updated in req.body
+    const activeMeetLink = meet_link !== undefined ? meet_link : currentBooking.meet_link;
 
-      if ((timeChanged || therapistChanged || statusReopened) && newStatus !== 'cancelled') {
-        const checkQuery = `
-          SELECT * FROM bookings
-          WHERE booking_date = ?
-            AND booking_time = ?
-            AND status != 'cancelled'
-            AND psychologist_id = ?
-            AND id != ?
-        `;
-        db.get(checkQuery, [newDate, newTime, newPsyId, id], (err, conflictRow) => {
-          if (err) {
-            return res.status(500).json({ error: 'Database error validation.' });
-          }
-          if (conflictRow) {
-            return res.status(400).json({
-              error: 'Conflict Detected',
-              message: `Cannot reschedule. The slot on ${newDate} at ${newTime} is already booked for this therapist by ${conflictRow.client_name}.`
-            });
-          }
-          performUpdate(activeMeetLink);
+    if ((timeChanged || therapistChanged || statusReopened) && newStatus !== 'cancelled') {
+      const conflict = await checkBookingConflict(newDate, newTime, newPsyId, id);
+      if (conflict) {
+        return res.status(400).json({
+          error: 'Conflict Detected',
+          message: `Cannot reschedule. The slot on ${newDate} at ${newTime} is already booked for this therapist by ${conflict.client_name}.`
         });
-      } else {
-        performUpdate(activeMeetLink);
       }
+    }
+
+    // Perform update
+    await updateBooking(id, {
+      status: newStatus,
+      booking_date: newDate,
+      booking_time: newTime,
+      notes: newNotes,
+      meet_link: activeMeetLink,
+      psychologist_id: newPsyId
     });
 
-    function performUpdate(finalMeetLink) {
-      const updateQuery = `
-        UPDATE bookings
-        SET status = ?, booking_date = ?, booking_time = ?, notes = ?, meet_link = ?, psychologist_id = ?
-        WHERE id = ?
-      `;
-      db.run(updateQuery, [newStatus, newDate, newTime, newNotes, finalMeetLink, newPsyId, id], async function (err) {
-        if (err) {
-          return res.status(500).json({ error: 'Database error updating booking.' });
-        }
-        
-        // Trigger notification only on reschedule (date/time change) or therapist change, NOT when only meet_link changes
-        const shouldNotify = (timeChanged || therapistChanged);
+    // Trigger notification only on reschedule (date/time change) or therapist change, NOT when only meet_link changes
+    const shouldNotify = (timeChanged || therapistChanged);
 
-        if (shouldNotify && newStatus !== 'cancelled') {
-          const updatedBooking = {
-            id,
-            client_name: currentBooking.client_name,
-            client_email: currentBooking.client_email,
-            client_phone: currentBooking.client_phone,
-            booking_date: newDate,
-            booking_time: newTime,
-            notes: newNotes,
-            status: newStatus,
-            meet_link: finalMeetLink,
-            psychologist_id: newPsyId
-          };
-          try {
-            await sendBookingNotifications(updatedBooking);
-          } catch (err) {
-            console.error("Update notification error:", err);
-          }
-        }
-
-        res.json({ 
-          message: 'Booking updated successfully!', 
-          meet_link: finalMeetLink,
-          emailed: !!(shouldNotify && newStatus !== 'cancelled')
-        });
-      });
+    if (shouldNotify && newStatus !== 'cancelled') {
+      const updatedBooking = {
+        id,
+        client_name: currentBooking.client_name,
+        client_email: currentBooking.client_email,
+        client_phone: currentBooking.client_phone,
+        booking_date: newDate,
+        booking_time: newTime,
+        notes: newNotes,
+        status: newStatus,
+        meet_link: activeMeetLink,
+        psychologist_id: newPsyId
+      };
+      try {
+        await sendBookingNotifications(updatedBooking);
+      } catch (err) {
+        console.error("Update notification error:", err);
+      }
     }
-  });
+
+    res.json({ 
+      message: 'Booking updated successfully!', 
+      meet_link: activeMeetLink,
+      emailed: !!(shouldNotify && newStatus !== 'cancelled')
+    });
+  } catch (err) {
+    console.error("Error updating booking:", err);
+    res.status(500).json({ error: 'Database error updating booking.' });
+  }
 });
 
 // ==========================================
@@ -403,101 +318,91 @@ app.patch('/api/bookings/:id', (req, res) => {
 // ==========================================
 
 // Get All Case Sheets
-app.get('/api/cases', (req, res) => {
-  db.all('SELECT * FROM case_sheets ORDER BY case_date DESC, created_at DESC', (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error fetching case sheets.' });
-    }
+app.get('/api/cases', async (req, res) => {
+  try {
+    const rows = await getCaseSheets();
     res.json(rows);
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error fetching case sheets.' });
+  }
 });
 
 // Get Single Case Sheet
-app.get('/api/cases/:id', (req, res) => {
+app.get('/api/cases/:id', async (req, res) => {
   const { id } = req.params;
-  db.get('SELECT * FROM case_sheets WHERE id = ?', [id], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error fetching case sheet.' });
-    }
+  try {
+    const row = await getCaseSheet(id);
     if (!row) {
       return res.status(404).json({ error: 'Case sheet not found.' });
     }
     res.json(row);
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error fetching case sheet.' });
+  }
 });
 
 // Create Case Sheet
-app.post('/api/cases', (req, res) => {
+app.post('/api/cases', async (req, res) => {
   const { booking_id, client_name, case_date, title, document_content } = req.body;
 
   if (!client_name || !case_date || !title) {
     return res.status(400).json({ error: 'Missing required fields: client_name, case_date, title.' });
   }
 
-  const query = `
-    INSERT INTO case_sheets (booking_id, client_name, case_date, title, document_content)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-  const params = [booking_id || null, client_name, case_date, title, document_content || ''];
-
-  db.run(query, params, function (err) {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Database error creating case sheet.' });
-    }
+  try {
+    const newCaseSheet = await createCaseSheet({
+      booking_id,
+      client_name,
+      case_date,
+      title,
+      document_content
+    });
+    
     res.status(201).json({
       message: 'Case sheet created successfully!',
-      caseId: this.lastID,
-      caseSheet: {
-        id: this.lastID,
-        booking_id,
-        client_name,
-        case_date,
-        title,
-        document_content
-      }
+      caseId: newCaseSheet.id,
+      caseSheet: newCaseSheet
     });
-  });
+  } catch (err) {
+    console.error("Error creating case sheet:", err);
+    res.status(500).json({ error: 'Database error creating case sheet.' });
+  }
 });
 
 // Update Case Sheet
-app.put('/api/cases/:id', (req, res) => {
+app.put('/api/cases/:id', async (req, res) => {
   const { id } = req.params;
   const { title, case_date, document_content } = req.body;
 
-  const query = `
-    UPDATE case_sheets
-    SET title = ?, case_date = ?, document_content = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `;
-
-  db.run(query, [title, case_date, document_content, id], function (err) {
-    if (err) {
-      return res.status(500).json({ error: 'Database error updating case sheet.' });
-    }
+  try {
+    await updateCaseSheet(id, { title, case_date, document_content });
     res.json({ message: 'Case sheet updated successfully!' });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error updating case sheet.' });
+  }
 });
 
 // Delete Case Sheet
-app.delete('/api/cases/:id', (req, res) => {
+app.delete('/api/cases/:id', async (req, res) => {
   const { id } = req.params;
-  db.run('DELETE FROM case_sheets WHERE id = ?', [id], function (err) {
-    if (err) {
-      return res.status(500).json({ error: 'Database error deleting case sheet.' });
-    }
+  try {
+    await deleteCaseSheet(id);
     res.json({ message: 'Case sheet deleted successfully!' });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error deleting case sheet.' });
+  }
 });
 
 // Send email with meet link manually
-app.post('/api/bookings/:id/email-link', (req, res) => {
+app.post('/api/bookings/:id/email-link', async (req, res) => {
   const { id } = req.params;
 
-  db.get('SELECT * FROM bookings WHERE id = ?', [id], (err, booking) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error fetching booking.' });
-    }
+  try {
+    const booking = await getBooking(id);
     if (!booking) {
       return res.status(404).json({ error: 'Booking not found.' });
     }
@@ -505,15 +410,12 @@ app.post('/api/bookings/:id/email-link', (req, res) => {
       return res.status(400).json({ error: 'Cannot send email: No Google Meet link is configured for this booking.' });
     }
 
-    sendBookingNotifications(booking, false, true)
-      .then(() => {
-        res.json({ message: 'Meeting link successfully emailed to client and therapist!' });
-      })
-      .catch(error => {
-        console.error("Manual notification error:", error);
-        res.status(500).json({ error: 'Failed to send email notification.' });
-      });
-  });
+    await sendBookingNotifications(booking, false, true);
+    res.json({ message: 'Meeting link successfully emailed to client and therapist!' });
+  } catch (error) {
+    console.error("Manual notification error:", error);
+    res.status(500).json({ error: 'Failed to send email notification.' });
+  }
 });
 
 // Start Server

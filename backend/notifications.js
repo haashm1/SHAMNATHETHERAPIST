@@ -119,7 +119,7 @@ export function generateGoogleCalendarUrl(booking) {
 
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDateTime}/${endDateTime}&details=${details}&location=${location}`;
 }
-import sqlite3 from 'sqlite3';
+import { getProfile } from './database.js';
 import nodemailer from 'nodemailer';
 
 const formatDateToDMY = (dateStr) => {
@@ -130,11 +130,6 @@ const formatDateToDMY = (dateStr) => {
   }
   return dateStr;
 };
-
-let dbPath = path.join(__dirname, 'psychologist.db');
-if (process.env.VERCEL) {
-  dbPath = path.join('/tmp', 'psychologist.db');
-}
 
 // Transporter configuration using Gmail and the user's provided App Password
 const transporter = nodemailer.createTransport({
@@ -149,17 +144,20 @@ const transporter = nodemailer.createTransport({
  * Dispatch booking notifications to therapist and client
  */
 export async function sendBookingNotifications(booking, isInitial = false, isMeetLinkOnly = false) {
-  const db = new sqlite3.Database(dbPath);
-  
-  db.get('SELECT * FROM profile WHERE id = ?', [booking.psychologist_id], async (err, therapist) => {
-    if (err || !therapist) {
-      console.error("Could not fetch therapist profile for notification, falling back to default.", err);
-      therapist = {
-        name: 'Shamna',
-        contact_email: 'therapist.shamna@gmail.com',
-        contact_phone: '+1 (555) 839-2810'
-      };
-    }
+  let therapist;
+  try {
+    therapist = await getProfile(booking.psychologist_id);
+  } catch (err) {
+    console.error("Could not fetch therapist profile for notification, falling back to default.", err);
+  }
+
+  if (!therapist) {
+    therapist = {
+      name: 'Shamna',
+      contact_email: 'therapist.shamna@gmail.com',
+      contact_phone: '+1 (555) 839-2810'
+    };
+  }
 
     const gcalUrl = generateGoogleCalendarUrl(booking);
     const timestamp = new Date().toLocaleString();
@@ -335,6 +333,4 @@ Alert: Session with ${booking.client_name} update. Status details generated.
 
     const fullLog = `${mailBody}\n${clientMailBody}\n${smsBody}\n\n`;
     fs.appendFileSync(notificationLogPath, fullLog);
-    db.close();
-  });
 }

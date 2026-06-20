@@ -1,141 +1,249 @@
-import sqlite3 from 'sqlite3';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
+import { db } from './firebase.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/**
+ * Seeds default psychologist profiles if the collection is empty.
+ */
+async function seedDefaultProfiles() {
+  try {
+    const profilesSnapshot = await db.collection('profiles').get();
+    if (profilesSnapshot.empty) {
+      console.log("Seeding default profiles into Firestore...");
+      
+      await db.collection('profiles').doc('1').set({
+        id: 1,
+        name: 'Shamna',
+        title: 'Licensed Clinical Psychologist & Cognitive Behavioral Therapist',
+        bio: 'With over 12 years of experience, Shamna specializes in helping clients navigate anxiety, stress, depression, and relationship dynamics using a compassionate, evidence-based approach.',
+        specialties: 'Anxiety,Depression,Relationship Counseling,CBT,Mindfulness-Based Therapy',
+        education: 'Ph.D. in Clinical Psychology - Stanford University',
+        experience: '12+ Years in Private Practice, Former Lead Therapist at Mindspace Clinic',
+        photo_url: '/uploads/default-doctor.jpg',
+        contact_email: 'therapist.shamna@gmail.com',
+        contact_phone: '+1 (555) 839-2810',
+        address: 'Suite 402, Oakwood Wellness Center, San Francisco, CA',
+        meet_link: '',
+        available_slots: '',
+        unavailable_dates: ''
+      });
 
-let dbPath = path.join(__dirname, 'psychologist.db');
-
-if (process.env.VERCEL) {
-  const tempDbPath = path.join('/tmp', 'psychologist.db');
-  if (!fs.existsSync(tempDbPath)) {
-    try {
-      if (fs.existsSync(dbPath)) {
-        fs.copyFileSync(dbPath, tempDbPath);
-      }
-    } catch (err) {
-      console.error("Failed to copy database to /tmp:", err);
+      await db.collection('profiles').doc('2').set({
+        id: 2,
+        name: 'Arjun Mehta',
+        title: 'Licensed Counselor & Family Therapist',
+        bio: 'Arjun specializes in child psychology, family therapy, and adolescent counseling, helping families build stronger connections and navigate stress.',
+        specialties: 'Child Therapy,Family Counseling,Adolescent Support,Anger Management',
+        education: 'M.S. in Counseling Psychology - Northwestern University',
+        experience: '8+ Years in Family Therapy and Educational Counseling',
+        photo_url: '/uploads/default-arjun.jpg',
+        contact_email: 'arjun@example.com',
+        contact_phone: '+1 (555) 124-7733',
+        address: 'Suite 405, Oakwood Wellness Center, San Francisco, CA',
+        meet_link: '',
+        available_slots: '',
+        unavailable_dates: ''
+      });
+      
+      console.log("Seeded default psychologist profiles successfully.");
     }
+  } catch (error) {
+    console.error("Error seeding default profiles in Firestore:", error);
   }
-  dbPath = tempDbPath;
 }
 
-const db = new sqlite3.Database(dbPath);
+// ==========================================
+// 1. PSYCHOLOGIST PROFILE FUNCTIONS
+// ==========================================
 
-db.serialize(() => {
-  // 1. Create psychologist profile table (allowing multiple entries)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS profile (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      title TEXT NOT NULL,
-      bio TEXT NOT NULL,
-      specialties TEXT NOT NULL,
-      education TEXT NOT NULL,
-      experience TEXT NOT NULL,
-      photo_url TEXT,
-      contact_email TEXT,
-      contact_phone TEXT,
-      address TEXT,
-      meet_link TEXT,
-      available_slots TEXT,
-      unavailable_dates TEXT
-    )
-  `, () => {
-    // Self-healing schema migration: try to add the column to existing databases
-    db.run("ALTER TABLE profile ADD COLUMN meet_link TEXT", (err) => {
-      // Ignore "duplicate column name" error if it already exists
-    });
-    db.run("ALTER TABLE profile ADD COLUMN available_slots TEXT", (err) => {
-      // Ignore "duplicate column name" error if it already exists
-    });
-    db.run("ALTER TABLE profile ADD COLUMN unavailable_dates TEXT", (err) => {
-      // Ignore "duplicate column name" error if it already exists
-    });
+export async function getProfiles() {
+  await seedDefaultProfiles();
+  const snapshot = await db.collection('profiles').get();
+  const profiles = [];
+  snapshot.forEach(doc => {
+    profiles.push(doc.data());
   });
+  // Sort profiles by ID
+  profiles.sort((a, b) => a.id - b.id);
+  return profiles;
+}
 
-  // Insert default seed data for profiles if empty
-  db.get("SELECT COUNT(*) as count FROM profile", (err, row) => {
-    if (err) {
-      console.error("Error reading profile:", err);
-      return;
+export async function getProfile(id) {
+  await seedDefaultProfiles();
+  const doc = await db.collection('profiles').doc(String(id)).get();
+  if (!doc.exists) return null;
+  return doc.data();
+}
+
+export async function createProfile(data) {
+  await seedDefaultProfiles();
+  const profiles = await getProfiles();
+  const maxId = profiles.reduce((max, p) => (p.id > max ? p.id : max), 0);
+  const newId = maxId + 1;
+  
+  const profileData = {
+    ...data,
+    id: newId,
+    available_slots: data.available_slots || '',
+    unavailable_dates: data.unavailable_dates || ''
+  };
+  
+  await db.collection('profiles').doc(String(newId)).set(profileData);
+  return profileData;
+}
+
+export async function updateProfile(id, data) {
+  await seedDefaultProfiles();
+  const docRef = db.collection('profiles').doc(String(id));
+  
+  const updateData = { ...data };
+  delete updateData.id; // Protect the numeric ID from modification
+  
+  await docRef.set(updateData, { merge: true });
+  const updated = await docRef.get();
+  return updated.data();
+}
+
+// ==========================================
+// 2. BOOKING & SLOT FUNCTIONS
+// ==========================================
+
+export async function getBookings() {
+  const snapshot = await db.collection('bookings').get();
+  const bookings = [];
+  snapshot.forEach(doc => {
+    bookings.push({ id: doc.id, ...doc.data() });
+  });
+  
+  // Sort by date DESC, time ASC
+  bookings.sort((a, b) => {
+    if (a.booking_date !== b.booking_date) {
+      return b.booking_date.localeCompare(a.booking_date);
     }
-    if (row.count === 0) {
-      // Seed Shamna
-      db.run(`
-        INSERT INTO profile (
-          id, name, title, bio, specialties, education, experience, photo_url, contact_email, contact_phone, address
-        ) VALUES (
-          1,
-          'Shamna',
-          'Licensed Clinical Psychologist & Cognitive Behavioral Therapist',
-          'With over 12 years of experience, Shamna specializes in helping clients navigate anxiety, stress, depression, and relationship dynamics using a compassionate, evidence-based approach.',
-          'Anxiety,Depression,Relationship Counseling,CBT,Mindfulness-Based Therapy',
-          'Ph.D. in Clinical Psychology - Stanford University',
-          '12+ Years in Private Practice, Former Lead Therapist at Mindspace Clinic',
-          '/uploads/default-doctor.jpg',
-          'shamna@example.com',
-          '+1 (555) 839-2810',
-          'Suite 402, Oakwood Wellness Center, San Francisco, CA'
-        )
-      `);
+    return a.booking_time.localeCompare(b.booking_time);
+  });
+  
+  return bookings;
+}
 
-      // Seed Arjun Mehta
-      db.run(`
-        INSERT INTO profile (
-          id, name, title, bio, specialties, education, experience, photo_url, contact_email, contact_phone, address
-        ) VALUES (
-          2,
-          'Arjun Mehta',
-          'Licensed Counselor & Family Therapist',
-          'Arjun specializes in child psychology, family therapy, and adolescent counseling, helping families build stronger connections and navigate stress.',
-          'Child Therapy,Family Counseling,Adolescent Support,Anger Management',
-          'M.S. in Counseling Psychology - Northwestern University',
-          '8+ Years in Family Therapy and Educational Counseling',
-          '/uploads/default-arjun.jpg',
-          'arjun@example.com',
-          '+1 (555) 124-7733',
-          'Suite 405, Oakwood Wellness Center, San Francisco, CA'
-        )
-      `);
-      console.log("Seeded default psychologist profiles.");
+export async function getBooking(id) {
+  const doc = await db.collection('bookings').doc(String(id)).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...doc.data() };
+}
+
+export async function createBooking(data) {
+  const bookingData = {
+    client_name: data.client_name,
+    client_email: data.client_email,
+    client_phone: data.client_phone,
+    booking_date: data.booking_date,
+    booking_time: data.booking_time,
+    duration_minutes: data.duration_minutes ? Number(data.duration_minutes) : 50,
+    notes: data.notes || '',
+    meet_link: data.meet_link || null,
+    psychologist_id: Number(data.psychologist_id),
+    status: data.status || 'booked',
+    created_at: new Date().toISOString()
+  };
+  
+  const docRef = await db.collection('bookings').add(bookingData);
+  return { id: docRef.id, ...bookingData };
+}
+
+export async function updateBooking(id, data) {
+  const docRef = db.collection('bookings').doc(String(id));
+  
+  const updateData = {};
+  if (data.status !== undefined) updateData.status = data.status;
+  if (data.booking_date !== undefined) updateData.booking_date = data.booking_date;
+  if (data.booking_time !== undefined) updateData.booking_time = data.booking_time;
+  if (data.notes !== undefined) updateData.notes = data.notes;
+  if (data.meet_link !== undefined) updateData.meet_link = data.meet_link;
+  if (data.psychologist_id !== undefined) updateData.psychologist_id = Number(data.psychologist_id);
+  
+  await docRef.update(updateData);
+  const updated = await docRef.get();
+  return { id: updated.id, ...updated.data() };
+}
+
+export async function checkBookingConflict(booking_date, booking_time, psychologist_id, excludeId = null) {
+  const snapshot = await db.collection('bookings')
+    .where('booking_date', '==', booking_date)
+    .where('booking_time', '==', booking_time)
+    .where('psychologist_id', '==', Number(psychologist_id))
+    .get();
+    
+  let conflict = null;
+  snapshot.forEach(doc => {
+    if (doc.id === excludeId) return;
+    const data = doc.data();
+    if (data.status !== 'cancelled') {
+      conflict = { id: doc.id, ...data };
     }
   });
+  
+  return conflict;
+}
 
-  // 2. Create bookings/slots table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS bookings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      client_name TEXT NOT NULL,
-      client_email TEXT NOT NULL,
-      client_phone TEXT NOT NULL,
-      booking_date TEXT NOT NULL, -- YYYY-MM-DD
-      booking_time TEXT NOT NULL, -- HH:MM (e.g., 09:00, 10:00)
-      duration_minutes INTEGER DEFAULT 50,
-      notes TEXT,
-      status TEXT DEFAULT 'booked', -- booked, cancelled, rescheduled
-      meet_link TEXT,
-      psychologist_id INTEGER DEFAULT 1,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+// ==========================================
+// 3. CASE SHEET FUNCTIONS
+// ==========================================
 
-  // 3. Create case sheets table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS case_sheets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      booking_id INTEGER,
-      client_name TEXT NOT NULL,
-      case_date TEXT NOT NULL, -- YYYY-MM-DD
-      title TEXT NOT NULL,
-      document_content TEXT, -- JSON or raw HTML containing Google Doc simulated formatting
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
-    )
-  `);
-});
+export async function getCaseSheets() {
+  const snapshot = await db.collection('case_sheets').get();
+  const cases = [];
+  snapshot.forEach(doc => {
+    cases.push({ id: doc.id, ...doc.data() });
+  });
+  
+  // Sort by date DESC, created_at DESC
+  cases.sort((a, b) => {
+    if (a.case_date !== b.case_date) {
+      return b.case_date.localeCompare(a.case_date);
+    }
+    const aTime = a.created_at || '';
+    const bTime = b.created_at || '';
+    return bTime.localeCompare(aTime);
+  });
+  
+  return cases;
+}
 
-export default db;
+export async function getCaseSheet(id) {
+  const doc = await db.collection('case_sheets').doc(String(id)).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...doc.data() };
+}
+
+export async function createCaseSheet(data) {
+  const caseData = {
+    booking_id: data.booking_id || null,
+    client_name: data.client_name,
+    case_date: data.case_date,
+    title: data.title,
+    document_content: data.document_content || '',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+  
+  const docRef = await db.collection('case_sheets').add(caseData);
+  return { id: docRef.id, ...caseData };
+}
+
+export async function updateCaseSheet(id, data) {
+  const docRef = db.collection('case_sheets').doc(String(id));
+  
+  const updateData = {
+    title: data.title,
+    case_date: data.case_date,
+    document_content: data.document_content,
+    updated_at: new Date().toISOString()
+  };
+  
+  await docRef.update(updateData);
+  return { id, ...updateData };
+}
+
+export async function deleteCaseSheet(id) {
+  await db.collection('case_sheets').doc(String(id)).delete();
+  return true;
+}
