@@ -40,10 +40,13 @@ function getInMemoryDefaults() {
   ];
 }
 
+let hasCheckedSeed = false;
+
 /**
  * Seeds default psychologist profiles if the collection is empty.
  */
 async function seedDefaultProfiles() {
+  if (hasCheckedSeed) return;
   try {
     const profilesSnapshot = await db.collection('profiles').get();
     if (profilesSnapshot.empty) {
@@ -54,6 +57,7 @@ async function seedDefaultProfiles() {
       }
       console.log("Seeded default psychologist profiles successfully.");
     }
+    hasCheckedSeed = true;
   } catch (error) {
     console.error("Error seeding default profiles in Firestore:", error.message);
   }

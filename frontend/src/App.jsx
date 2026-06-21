@@ -100,14 +100,21 @@ export default function App() {
       <main style={{ flex: 1 }}>
         {view === 'client' ? (
           /* Client View */
-          <>
+          profile ? (
             <Hero 
               profile={profile} 
               onBookClick={() => setShowBookingModal(true)} 
               onAdminClick={() => setView('admin')}
             />
-            {/* Booking modal render removed from here and moved to global root level */}
-          </>
+          ) : (
+            /* Premium Loading State */
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem' }}>
+              <div className="spinner"></div>
+              <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                Loading therapist profile...
+              </p>
+            </div>
+          )
         ) : (
           /* Admin View (Requires passcode validation) */
           <div className="container admin-container fade-in">
