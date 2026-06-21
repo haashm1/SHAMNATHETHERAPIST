@@ -151,10 +151,6 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
   const therapistEmail = therapist.contact_email || 'therapist.shamna@gmail.com';
   
   if (isMeetLinkOnly) {
-    const meetLinkText = booking.meet_link 
-      ? `<a href="${booking.meet_link}" target="_blank" style="color: #B08E73; font-weight: 600; text-decoration: underline;">${booking.meet_link}</a>` 
-      : 'Not assigned yet';
-      
     if (isClient) {
       heading = 'Google Meet Access Link';
       introText = `Dear ${booking.client_name},<br><br>The Google Meet access link for your consultation session with ${therapist.name} has been assigned.`;
@@ -163,7 +159,6 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
         <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
         <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
         <tr><td class="label">Duration</td><td class="val">50 minutes</td></tr>
-        <tr><td class="label">Meet Link</td><td class="val">${meetLinkText}</td></tr>
       `;
       closingText = `Please click the Google Meet link above at the time of your appointment to join the video session. We look forward to speaking with you.`;
     } else {
@@ -173,7 +168,6 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
         <tr><td class="label">Client Name</td><td class="val">${booking.client_name}</td></tr>
         <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
         <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
-        <tr><td class="label">Meet Link</td><td class="val">${meetLinkText}</td></tr>
       `;
       closingText = `This is an automated clinical notification.`;
     }
@@ -204,10 +198,6 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
     }
   } else {
     // Rescheduled
-    const meetLinkText = booking.meet_link 
-      ? `<a href="${booking.meet_link}" target="_blank" style="color: #B08E73; font-weight: 600; text-decoration: underline;">${booking.meet_link}</a>` 
-      : '<em>Will be shared separately once confirmed by the therapist.</em>';
-      
     if (isClient) {
       heading = 'Session Rescheduled';
       introText = `Dear ${booking.client_name},<br><br>Your consultation session with ${therapist.name} has been rescheduled.`;
@@ -216,7 +206,7 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
         <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
         <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
         <tr><td class="label">Duration</td><td class="val">50 minutes</td></tr>
-        <tr><td class="label">Meet Link</td><td class="val">${meetLinkText}</td></tr>
+        <tr><td class="label">Meet Link</td><td class="val">${booking.meet_link || '<em>Will be shared separately once confirmed by the therapist.</em>'}</td></tr>
       `;
       closingText = `We look forward to seeing you at the rescheduled time.`;
     } else {
@@ -236,6 +226,55 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
     ? `<div style="font-size: 14px; font-weight: 600; color: #2E251E; margin-top: 25px; margin-bottom: 5px;">Client Notes:</div>
        <div class="notes-box">"${booking.notes}"</div>` 
     : '';
+
+  // Construct the middle section dynamically based on isMeetLinkOnly
+  let middleSectionHtml = '';
+  if (isMeetLinkOnly) {
+    const meetLink = booking.meet_link || '';
+    middleSectionHtml = `
+      <div class="btn-container" style="margin: 20px 0 35px 0;">
+        <a href="${gcalUrl}" target="_blank" class="btn" style="color:#ffffff;">📅 Add to Google Calendar</a>
+      </div>
+
+      <div style="background-color: #F0E6DC; border: 2px dashed #B08E73; border-radius: 8px; padding: 25px; margin: 30px 0; text-align: center;">
+        <div style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: #2E251E; margin-bottom: 12px; letter-spacing: 0.05em;">
+          Your Video Consultation Room
+        </div>
+        <div style="margin: 20px 0;">
+          <a href="${meetLink}" target="_blank" style="display: inline-block; background-color: #7A8F75; color: #FFFFFF !important; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 15px; font-weight: 700; box-shadow: 0 2px 6px rgba(122, 143, 117, 0.2);">
+            💻 Join Google Meet Session
+          </a>
+        </div>
+        <div style="font-size: 13px; color: #6B5B52; word-break: break-all;">
+          Link URL: <a href="${meetLink}" target="_blank" style="color: #B08E73; text-decoration: underline; font-weight: 500;">${meetLink}</a>
+        </div>
+      </div>
+
+      <div class="details-card" style="margin-top: 35px;">
+        <div class="details-title">Session Details</div>
+        <table class="details-table">
+          ${detailsRows}
+        </table>
+      </div>
+
+      ${notesSection}
+    `;
+  } else {
+    middleSectionHtml = `
+      <div class="details-card">
+        <div class="details-title">Session Details</div>
+        <table class="details-table">
+          ${detailsRows}
+        </table>
+      </div>
+
+      ${notesSection}
+
+      <div class="btn-container">
+        <a href="${gcalUrl}" target="_blank" class="btn" style="color:#ffffff;">📅 Add to Google Calendar</a>
+      </div>
+    `;
+  }
 
   return `
 <!DOCTYPE html>
@@ -387,20 +426,9 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
         <h2 class="title">${heading}</h2>
         <p class="intro">${introText}</p>
         
-        <div class="details-card">
-          <div class="details-title">Session Details</div>
-          <table class="details-table">
-            ${detailsRows}
-          </table>
-        </div>
-
-        ${notesSection}
-
-        <div class="btn-container">
-          <a href="${gcalUrl}" target="_blank" class="btn" style="color:#ffffff;">📅 Add to Google Calendar</a>
-        </div>
+        ${middleSectionHtml}
         
-        <p class="intro" style="margin-bottom: 0;">${closingText}</p>
+        <p class="intro" style="margin-bottom: 0; margin-top: 25px;">${closingText}</p>
       </div>
       <div class="footer">
         &copy; ${new Date().getFullYear()} Shamna Clinic. Secure & confidential records.<br>
