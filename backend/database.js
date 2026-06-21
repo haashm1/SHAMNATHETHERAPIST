@@ -124,8 +124,10 @@ export async function updateProfile(id, data) {
   await seedDefaultProfiles();
   const docRef = db.collection('profiles').doc(String(id));
   
-  const updateData = { ...data };
-  delete updateData.id; // Protect the numeric ID from modification
+  const updateData = { 
+    ...data,
+    id: Number(id) // Ensure the numeric ID is explicitly saved
+  };
   
   await docRef.set(updateData, { merge: true });
   const updated = await docRef.get();
