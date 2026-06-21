@@ -21,6 +21,24 @@ export default function App() {
   const [activeAdminTab, setActiveAdminTab] = useState('bookings'); // bookings | profile | cases
   const [selectedBookingForCase, setSelectedBookingForCase] = useState(null);
 
+  const [loadingQuote] = useState(() => {
+    const quotes = [
+      "Breathe in peace, breathe out worry.",
+      "Quiet the mind and the soul will speak.",
+      "Your mind will answer most questions if you learn to relax and wait.",
+      "Almost everything will work again if you unplug it for a few minutes, including you.",
+      "Give yourself grace. You are doing the best you can.",
+      "You don't have to control your thoughts. You just have to stop letting them control you.",
+      "Breathe. Let go. And remind yourself that this very moment is the only one you know you have for sure.",
+      "Peace is a journey of a thousand miles and it must be taken one step at a time.",
+      "Feelings are just visitors, let them come and go.",
+      "You are stronger than you think, and calmer than you feel.",
+      "Slow down. Calm your mind. Take a deep breath.",
+      "Every day is a fresh start. Take a deep breath and start again."
+    ];
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  });
+
   const handleBookNextSession = (clientInfo) => {
     setPrefillData(clientInfo);
     setShowBookingModal(true);
@@ -108,11 +126,16 @@ export default function App() {
             />
           ) : (
             /* Premium Loading State */
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1.5rem', padding: '0 2rem' }}>
               <div className="spinner"></div>
-              <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
-                Loading therapist profile...
-              </p>
+              <div style={{ textAlign: 'center', maxWidth: '500px' }}>
+                <span className="hero-subtitle" style={{ fontSize: '0.75rem', display: 'block', marginBottom: '0.5rem', letterSpacing: '0.15em', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase' }}>
+                  Mind Relief Quote
+                </span>
+                <p style={{ fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                  "{loadingQuote}"
+                </p>
+              </div>
             </div>
           )
         ) : (
