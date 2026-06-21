@@ -18,7 +18,8 @@ import {
   getCaseSheet,
   createCaseSheet,
   updateCaseSheet,
-  deleteCaseSheet
+  deleteCaseSheet,
+  deleteClientRecords
 } from './database.js';
 import { firebaseStatus } from './firebase.js';
 import { sendBookingNotifications, generateGoogleCalendarUrl, generateMockMeetLink, createRealGoogleMeetEvent } from './notifications.js';
@@ -426,6 +427,23 @@ app.delete('/api/cases/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error deleting case sheet.' });
+  }
+});
+
+// Delete Client Records (Bookings and Case Sheets)
+app.delete('/api/clients', async (req, res) => {
+  const { email, name } = req.query;
+  
+  if (!email || !name) {
+    return res.status(400).json({ error: 'Missing email or name query parameter.' });
+  }
+  
+  try {
+    await deleteClientRecords(email, name);
+    res.json({ message: 'Client records successfully deleted.' });
+  } catch (err) {
+    console.error("Error deleting client records:", err);
+    res.status(500).json({ error: 'Failed to delete client records.' });
   }
 });
 

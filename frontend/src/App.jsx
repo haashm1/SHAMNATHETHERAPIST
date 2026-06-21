@@ -323,6 +323,7 @@ export default function App() {
                       setActiveAdminTab('cases');
                     }}
                     onBookNextSession={handleBookNextSession}
+                    onRefresh={fetchBookings}
                   />
                 )}
 

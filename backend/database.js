@@ -308,3 +308,27 @@ export async function deleteCaseSheet(id) {
   await db.collection('case_sheets').doc(String(id)).delete();
   return true;
 }
+
+export async function deleteClientRecords(email, name) {
+  const batch = db.batch();
+  
+  // 1. Delete all bookings for this email
+  const bookingsSnapshot = await db.collection('bookings')
+    .where('client_email', '==', email)
+    .get();
+  bookingsSnapshot.forEach(doc => {
+    batch.delete(doc.ref);
+  });
+  
+  // 2. Delete all case sheets for this client name (case-insensitive)
+  const caseSheetsSnapshot = await db.collection('case_sheets').get();
+  caseSheetsSnapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.client_name && data.client_name.toLowerCase().trim() === name.toLowerCase().trim()) {
+      batch.delete(doc.ref);
+    }
+  });
+  
+  await batch.commit();
+  return true;
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Mail, FileText, Calendar, ChevronRight, Clock, Plus } from 'lucide-react';
+import { User, Phone, Mail, FileText, Calendar, ChevronRight, Clock, Plus, Trash2 } from 'lucide-react';
 
 const formatDateToDMY = (dateStr) => {
   if (!dateStr) return '';
@@ -10,9 +10,42 @@ const formatDateToDMY = (dateStr) => {
   return dateStr;
 };
 
-export default function AdminClients({ bookings, onStartCaseSheet, onOpenCaseSheet, onBookNextSession }) {
+export default function AdminClients({ bookings, onStartCaseSheet, onOpenCaseSheet, onBookNextSession, onRefresh }) {
   const [selectedClientEmail, setSelectedClientEmail] = useState(null);
   const [clientCaseSheets, setClientCaseSheets] = useState([]);
+
+  const handleDeleteClient = async () => {
+    if (!selectedClient) return;
+    
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete all records for "${selectedClient.name}"?\n\n` +
+      `This will permanently delete:\n` +
+      `- All ${selectedClient.appointments.length} appointment booking records\n` +
+      `- All associated clinical case sheets\n\n` +
+      `This action cannot be undone.`
+    );
+    
+    if (!confirmDelete) return;
+    
+    try {
+      const res = await fetch(`/api/clients?email=${encodeURIComponent(selectedClient.email)}&name=${encodeURIComponent(selectedClient.name)}`, {
+        method: 'DELETE'
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete client');
+      }
+      
+      setSelectedClientEmail(null);
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (err) {
+      console.error("Error deleting client:", err);
+      alert(err.message || 'An error occurred while trying to delete client.');
+    }
+  };
 
   // Fetch all case sheets to link them to clients
   useEffect(() => {
@@ -108,6 +141,15 @@ export default function AdminClients({ bookings, onStartCaseSheet, onOpenCaseShe
                 <p style={{ fontSize: '0.9rem', color: 'var(--accent)', fontWeight: 500 }}>Client Record Card</p>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button 
+                  onClick={handleDeleteClient}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', gap: '0.25rem', border: '1px solid var(--error)', color: 'var(--error)' }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--error)'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--error)'; }}
+                >
+                  <Trash2 size={12} /> Delete Client
+                </button>
                 <button 
                   onClick={() => onBookNextSession({
                     client_name: selectedClient.name,
