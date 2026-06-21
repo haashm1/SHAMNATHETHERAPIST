@@ -221,14 +221,15 @@ export default function BookingModal({ onClose, prefillData }) {
   }, []);
 
   const activePsychologist = psychologists.find(p => p.id === parseInt(selectedPsychologistId, 10));
-  const therapistSlots = activePsychologist?.available_slots 
-    ? activePsychologist.available_slots.split(',').filter(Boolean)
+  const availableSlotsStr = activePsychologist?.available_slots || '';
+  const therapistSlots = availableSlotsStr 
+    ? availableSlotsStr.split(',').filter(Boolean)
     : ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
   
   const therapistUnavailableDates = activePsychologist?.unavailable_dates
     ? activePsychologist.unavailable_dates.split(',').filter(Boolean)
     : [];
-
+ 
   // Update disabled slots when date or psychologist changes
   useEffect(() => {
     if (!bookingDate) {
@@ -243,13 +244,32 @@ export default function BookingModal({ onClose, prefillData }) {
     );
     // Map them to their times
     const timesBooked = bookingsOnDate.map(b => b.booking_time);
-    setDisabledSlots(timesBooked);
+    
+    // Check if the chosen date is today, and disable past times
+    const today = new Date();
+    const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    const pastTimes = [];
+    if (bookingDate === todayDate) {
+      const currentHours = today.getHours();
+      const currentMinutes = today.getMinutes();
+      
+      therapistSlots.forEach(slot => {
+        const [slotHours, slotMinutes] = slot.split(':').map(Number);
+        if (slotHours < currentHours || (slotHours === currentHours && slotMinutes <= currentMinutes)) {
+          pastTimes.push(slot);
+        }
+      });
+    }
+
+    const combinedDisabled = [...new Set([...timesBooked, ...pastTimes])];
+    setDisabledSlots(combinedDisabled);
     
     // Clear slot selection if the currently selected one is now disabled
-    if (timesBooked.includes(bookingTime)) {
+    if (combinedDisabled.includes(bookingTime)) {
       setBookingTime('');
     }
-  }, [bookingDate, selectedPsychologistId, existingBookings]);
+  }, [bookingDate, selectedPsychologistId, existingBookings, availableSlotsStr]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
