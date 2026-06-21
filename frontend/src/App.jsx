@@ -126,12 +126,9 @@ export default function App() {
             />
           ) : (
             /* Premium Loading State */
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1.5rem', padding: '0 2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem', padding: '0 2rem' }}>
               <div className="spinner"></div>
               <div style={{ textAlign: 'center', maxWidth: '500px' }}>
-                <span className="hero-subtitle" style={{ fontSize: '0.75rem', display: 'block', marginBottom: '0.5rem', letterSpacing: '0.15em', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase' }}>
-                  Mind Relief Quote
-                </span>
                 <p style={{ fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                   "{loadingQuote}"
                 </p>
