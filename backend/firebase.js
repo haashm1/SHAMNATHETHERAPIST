@@ -4,6 +4,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
+const { initializeApp, cert } = admin;
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -27,8 +29,8 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 try {
   if (serviceAccount) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
+    initializeApp({
+      credential: cert(serviceAccount)
     });
     console.log("Firebase Admin initialized via environment credentials.");
     firebaseStatus.initSuccess = true;
@@ -37,19 +39,19 @@ try {
     if (fs.existsSync(localKeyPath)) {
       try {
         const localKey = JSON.parse(fs.readFileSync(localKeyPath, 'utf8'));
-        admin.initializeApp({
-          credential: admin.credential.cert(localKey)
+        initializeApp({
+          credential: cert(localKey)
         });
         console.log("Firebase Admin initialized via local service account file.");
         firebaseStatus.initSuccess = true;
       } catch (err) {
         console.error("Failed to parse local firebase-service-account.json file:", err);
         firebaseStatus.error = "Local Key Parse Error: " + err.message;
-        admin.initializeApp();
+        initializeApp();
       }
     } else {
       console.warn("⚠️ Firebase credentials not found. Attempting default initialization...");
-      admin.initializeApp();
+      initializeApp();
     }
   }
 } catch (initError) {
