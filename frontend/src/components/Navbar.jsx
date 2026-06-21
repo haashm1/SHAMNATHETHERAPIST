@@ -6,7 +6,7 @@ export default function Navbar({ currentView, onViewChange, psychologistName, on
     <nav className="navbar">
       <div className="container nav-container">
         <div className="logo" style={{ cursor: 'pointer' }} onClick={() => onViewChange('client')}>
-          <span>Shamna</span>
+          <span>Shamna</span> <span style={{ color: 'var(--text-primary)' }}>The Therapist</span>
         </div>
         <div className="nav-links">
           {currentView === 'client' ? (

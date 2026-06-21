@@ -289,7 +289,7 @@ export default function App() {
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <div className="logo" style={{ color: 'white' }}>
-              <span>Shamna</span>
+              <span>Shamna</span> <span style={{ color: 'white' }}>The Therapist</span>
             </div>
             <p style={{ fontSize: '0.8rem', color: '#8E7E74', marginTop: '0.25rem' }}>
               Empowering mental wellbeing and emotional resilience.
