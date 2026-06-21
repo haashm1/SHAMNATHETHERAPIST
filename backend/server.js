@@ -20,6 +20,7 @@ import {
   updateCaseSheet,
   deleteCaseSheet
 } from './database.js';
+import { firebaseStatus } from './firebase.js';
 import { sendBookingNotifications, generateGoogleCalendarUrl, generateMockMeetLink, createRealGoogleMeetEvent } from './notifications.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -416,6 +417,11 @@ app.post('/api/bookings/:id/email-link', async (req, res) => {
     console.error("Manual notification error:", error);
     res.status(500).json({ error: 'Failed to send email notification.' });
   }
+});
+
+// Diagnostics endpoint to check Firebase setup
+app.get('/api/status', (req, res) => {
+  res.json(firebaseStatus);
 });
 
 // Start Server
