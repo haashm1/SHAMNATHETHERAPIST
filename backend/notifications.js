@@ -140,6 +140,279 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient, gcalUrl) {
+  const formattedDate = formatDateToDMY(booking.booking_date);
+  
+  let heading = '';
+  let introText = '';
+  let closingText = '';
+  let detailsRows = '';
+  
+  const therapistEmail = therapist.contact_email || 'therapist.shamna@gmail.com';
+  
+  if (isMeetLinkOnly) {
+    const meetLinkText = booking.meet_link 
+      ? `<a href="${booking.meet_link}" target="_blank" style="color: #B08E73; font-weight: 600; text-decoration: underline;">${booking.meet_link}</a>` 
+      : 'Not assigned yet';
+      
+    if (isClient) {
+      heading = 'Google Meet Access Link';
+      introText = `Dear ${booking.client_name},<br><br>The Google Meet access link for your consultation session with ${therapist.name} has been assigned.`;
+      detailsRows = `
+        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Clinical Psychologist'})</td></tr>
+        <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
+        <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
+        <tr><td class="label">Duration</td><td class="val">50 minutes</td></tr>
+        <tr><td class="label">Meet Link</td><td class="val">${meetLinkText}</td></tr>
+      `;
+      closingText = `Please click the Google Meet link above at the time of your appointment to join the video session. We look forward to speaking with you.`;
+    } else {
+      heading = 'Meet Link Shared with Client';
+      introText = `Dear ${therapist.name},<br><br>The Google Meet link for your session with ${booking.client_name} has been successfully sent to the client.`;
+      detailsRows = `
+        <tr><td class="label">Client Name</td><td class="val">${booking.client_name}</td></tr>
+        <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
+        <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
+        <tr><td class="label">Meet Link</td><td class="val">${meetLinkText}</td></tr>
+      `;
+      closingText = `This is an automated clinical notification.`;
+    }
+  } else if (isInitial) {
+    if (isClient) {
+      heading = 'Appointment Registered';
+      introText = `Dear ${booking.client_name},<br><br>Your consultation session with ${therapist.name} has been successfully registered. We look forward to welcoming you.`;
+      detailsRows = `
+        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Clinical Psychologist'})</td></tr>
+        <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
+        <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
+        <tr><td class="label">Duration</td><td class="val">50 minutes</td></tr>
+        <tr><td class="label">Meet Link</td><td class="val"><em>Will be shared separately once confirmed by the therapist.</em></td></tr>
+      `;
+      closingText = `A secure Google Meet link to join the session will be emailed to you shortly before your appointment.`;
+    } else {
+      heading = 'New Session Booked';
+      introText = `Dear ${therapist.name},<br><br>A new therapy session has been successfully booked with you.`;
+      detailsRows = `
+        <tr><td class="label">Client Name</td><td class="val">${booking.client_name}</td></tr>
+        <tr><td class="label">Client Email</td><td class="val">${booking.client_email}</td></tr>
+        <tr><td class="label">Client Phone</td><td class="val">${booking.client_phone}</td></tr>
+        <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
+        <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
+        <tr><td class="label">Meet Link</td><td class="val"><em>Not assigned yet</em><br><small style="color:#8E7E74;">(Please go to the administrator portal to set the link and email it to the client)</small></td></tr>
+      `;
+      closingText = `Please check your psychologist portal to manage this session.`;
+    }
+  } else {
+    // Rescheduled
+    const meetLinkText = booking.meet_link 
+      ? `<a href="${booking.meet_link}" target="_blank" style="color: #B08E73; font-weight: 600; text-decoration: underline;">${booking.meet_link}</a>` 
+      : '<em>Will be shared separately once confirmed by the therapist.</em>';
+      
+    if (isClient) {
+      heading = 'Session Rescheduled';
+      introText = `Dear ${booking.client_name},<br><br>Your consultation session with ${therapist.name} has been rescheduled.`;
+      detailsRows = `
+        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Clinical Psychologist'})</td></tr>
+        <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
+        <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
+        <tr><td class="label">Duration</td><td class="val">50 minutes</td></tr>
+        <tr><td class="label">Meet Link</td><td class="val">${meetLinkText}</td></tr>
+      `;
+      closingText = `We look forward to seeing you at the rescheduled time.`;
+    } else {
+      heading = 'Session Rescheduled';
+      introText = `Dear ${therapist.name},<br><br>A therapy session with you has been rescheduled.`;
+      detailsRows = `
+        <tr><td class="label">Client Name</td><td class="val">${booking.client_name}</td></tr>
+        <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
+        <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
+        <tr><td class="label">Meet Link</td><td class="val">${booking.meet_link || '<em>Not assigned yet</em>'}</td></tr>
+      `;
+      closingText = `This is an automated clinical notification.`;
+    }
+  }
+
+  const notesSection = booking.notes 
+    ? `<div style="font-size: 14px; font-weight: 600; color: #2E251E; margin-top: 25px; margin-bottom: 5px;">Client Notes:</div>
+       <div class="notes-box">"${booking.notes}"</div>` 
+    : '';
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${heading}</title>
+  <style>
+    body {
+      background-color: #FAF6F0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #2E251E;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      background-color: #FAF6F0;
+      width: 100%;
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 580px;
+      margin: 0 auto;
+      background-color: #FFFFFF;
+      border: 1px solid #E6DCD2;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(46, 37, 30, 0.03);
+    }
+    .header {
+      background-color: #FAF6F0;
+      border-bottom: 1px solid #E6DCD2;
+      padding: 30px;
+      text-align: center;
+    }
+    .header-logo {
+      font-family: 'Georgia', serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #2E251E;
+      letter-spacing: -0.02em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .header-logo span {
+      color: #B08E73;
+    }
+    .content {
+      padding: 40px 35px;
+    }
+    .title {
+      font-family: 'Georgia', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #2E251E;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .intro {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #6B5B52;
+      margin-bottom: 30px;
+    }
+    .details-card {
+      background-color: #FAF6F0;
+      border: 1px solid #E6DCD2;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+    .details-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #B08E73;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .details-table td {
+      padding: 8px 0;
+      font-size: 14px;
+      line-height: 1.5;
+      vertical-align: top;
+    }
+    .label {
+      font-weight: 600;
+      color: #2E251E;
+      width: 35%;
+    }
+    .val {
+      color: #6B5B52;
+    }
+    .btn-container {
+      text-align: center;
+      margin: 35px 0;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #B08E73;
+      color: #FFFFFF !important;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .btn:hover {
+      background-color: #917056;
+    }
+    .notes-box {
+      border-left: 3px solid #B08E73;
+      padding-left: 15px;
+      font-style: italic;
+      color: #8E7E74;
+      margin: 10px 0 20px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .footer {
+      background-color: #FAF6F0;
+      border-top: 1px solid #E6DCD2;
+      padding: 30px;
+      text-align: center;
+      font-size: 12px;
+      color: #8E7E74;
+      line-height: 1.5;
+    }
+    .footer a {
+      color: #B08E73;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <h1 class="header-logo">SHAMNA <span>THE THERAPIST</span></h1>
+      </div>
+      <div class="content">
+        <h2 class="title">${heading}</h2>
+        <p class="intro">${introText}</p>
+        
+        <div class="details-card">
+          <div class="details-title">Session Details</div>
+          <table class="details-table">
+            ${detailsRows}
+          </table>
+        </div>
+
+        ${notesSection}
+
+        <div class="btn-container">
+          <a href="${gcalUrl}" target="_blank" class="btn" style="color:#ffffff;">📅 Add to Google Calendar</a>
+        </div>
+        
+        <p class="intro" style="margin-bottom: 0;">${closingText}</p>
+      </div>
+      <div class="footer">
+        &copy; ${new Date().getFullYear()} Shamna Clinic. Secure & confidential records.<br>
+        Need help? Contact <a href="mailto:${therapistEmail}">${therapistEmail}</a> or visit <a href="https://shamnathetherapist.in" target="_blank">shamnathetherapist.in</a>.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
 /**
  * Dispatch booking notifications to therapist and client
  */
@@ -180,7 +453,8 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
               `- Time: ${booking.booking_time}\n` +
               `- Google Meet Link: ${meetLink}\n\n` +
               `-----------------------------------------\n` +
-              `This is an automated clinical notification.`
+              `This is an automated clinical notification.`,
+        html: buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, false, gcalUrl)
       };
 
       clientMailOptions = {
@@ -198,7 +472,8 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
               `Add to Google Calendar:\n` +
               `${gcalUrl}\n\n` +
               `Warm regards,\n` +
-              `Shamna Clinic Support`
+              `Shamna Clinic Support`,
+        html: buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, true, gcalUrl)
       };
 
     } else if (isInitial) {
@@ -222,7 +497,8 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
               `Add this session to your calendar (without Meet Link for now):\n` +
               `${gcalUrl}\n\n` +
               `-----------------------------------------\n` +
-              `This is an automated clinical notification.`
+              `This is an automated clinical notification.`,
+        html: buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, false, gcalUrl)
       };
 
       clientMailOptions = {
@@ -236,12 +512,13 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
               `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
               `- Time: ${booking.booking_time}\n` +
               `- Duration: 50 minutes\n` +
-              `- Google Meet Link: Will be shared with you separately once confirmed by the therapist.\n\n` +
+              `- Google Meet Link: Will be shared separately once confirmed by the therapist.\n\n` +
               `Add to Google Calendar:\n` +
               `${gcalUrl}\n\n` +
               `We look forward to seeing you.\n\n` +
               `Warm regards,\n` +
-              `Shamna Clinic Support`
+              `Shamna Clinic Support`,
+        html: buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, true, gcalUrl)
       };
 
     } else {
@@ -264,7 +541,8 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
               `Update this session in your Google Calendar:\n` +
               `${gcalUrl}\n\n` +
               `-----------------------------------------\n` +
-              `This is an automated clinical notification.`
+              `This is an automated clinical notification.`,
+        html: buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, false, gcalUrl)
       };
 
       clientMailOptions = {
@@ -283,7 +561,8 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
               `${gcalUrl}\n\n` +
               `We look forward to seeing you.\n\n` +
               `Warm regards,\n` +
-              `Shamna Clinic Support`
+              `Shamna Clinic Support`,
+        html: buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, true, gcalUrl)
       };
     }
 
