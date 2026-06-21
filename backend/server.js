@@ -205,8 +205,8 @@ app.get('/api/bookings', async (req, res) => {
 app.post('/api/bookings', async (req, res) => {
   const { client_name, client_email, client_phone, booking_date, booking_time, duration_minutes, notes, meet_link, psychologist_id } = req.body;
 
-  if (!client_name || !client_email || !client_phone || !booking_date || !booking_time) {
-    return res.status(400).json({ error: 'Missing required booking fields.' });
+  if (!client_name || !client_email || !client_phone || !booking_date || !booking_time || !notes) {
+    return res.status(400).json({ error: 'Missing required booking fields. Please provide all details, including notes.' });
   }
 
   const activePsyId = psychologist_id ? parseInt(psychologist_id, 10) : 1;

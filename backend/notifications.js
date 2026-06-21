@@ -137,7 +137,10 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: 'therapist.shamna@gmail.com', // Primary clinic email
     pass: 'atzw urhm jvki zcfo'          // User's Google App Password
-  }
+  },
+  connectionTimeout: 6000,
+  greetingTimeout: 6000,
+  socketTimeout: 10000
 });
 
 function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient, gcalUrl) {
@@ -595,12 +598,20 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
     }
 
     try {
-      // Send both emails using Nodemailer
-      await Promise.all([
+      // Send both emails using Nodemailer in parallel with allSettled
+      const emailOutcomes = await Promise.allSettled([
         transporter.sendMail(therapistMailOptions),
         transporter.sendMail(clientMailOptions)
       ]);
-      console.log(`[Notification] Emails successfully dispatched (isMeetLinkOnly=${isMeetLinkOnly}, isInitial=${isInitial}).`);
+      
+      emailOutcomes.forEach((outcome, idx) => {
+        const type = idx === 0 ? "therapist" : "client";
+        if (outcome.status === "fulfilled") {
+          console.log(`[Notification] ${type} email successfully sent.`);
+        } else {
+          console.error(`[Notification Error] Failed to send ${type} email:`, outcome.reason);
+        }
+      });
     } catch (mailError) {
       console.error("Error sending email notification through nodemailer:", mailError);
     }

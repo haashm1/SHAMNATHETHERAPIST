@@ -278,6 +278,11 @@ export default function BookingModal({ onClose, prefillData }) {
       return;
     }
 
+    if (!clientName.trim() || !clientEmail.trim() || !clientPhone.trim() || !notes.trim()) {
+      setErrorMsg('Please fill in all details, including what you would like to address.');
+      return;
+    }
+
     setLoading(true);
     setErrorMsg('');
     setSuccessMsg('');
@@ -607,7 +612,7 @@ export default function BookingModal({ onClose, prefillData }) {
               )}
 
               <div className="form-group">
-                <label htmlFor="booking-notes">Briefly describe what you'd like to address (Optional)</label>
+                <label htmlFor="booking-notes">Briefly describe what you'd like to address</label>
                 <textarea 
                   id="booking-notes" 
                   className="form-control"
@@ -615,6 +620,7 @@ export default function BookingModal({ onClose, prefillData }) {
                   placeholder="Stress management, anxiety support, family dynamics..." 
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
+                  required
                 ></textarea>
               </div>
 
