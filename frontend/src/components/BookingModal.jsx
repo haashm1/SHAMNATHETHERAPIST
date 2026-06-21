@@ -507,23 +507,6 @@ export default function BookingModal({ onClose, prefillData }) {
               )}
 
               <div className="form-group">
-                <label htmlFor="psychologist-select">Select Psychologist / Therapist</label>
-                <select
-                  id="psychologist-select"
-                  className="form-control"
-                  value={selectedPsychologistId}
-                  onChange={(e) => setSelectedPsychologistId(e.target.value)}
-                  required
-                >
-                  {psychologists.map((psy) => (
-                    <option key={psy.id} value={psy.id}>
-                      {psy.name} - {psy.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
                 <label htmlFor="client-name">Your Full Name</label>
                 <input 
                   type="text" 
