@@ -21,6 +21,11 @@ export default function App() {
   const [activeAdminTab, setActiveAdminTab] = useState('bookings'); // bookings | profile | cases
   const [selectedBookingForCase, setSelectedBookingForCase] = useState(null);
 
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [showAndroidInstructions, setShowAndroidInstructions] = useState(false);
+
   const [loadingQuote] = useState(() => {
     const quotes = [
       "Breathe in peace, breathe out worry.",
@@ -72,7 +77,62 @@ export default function App() {
   useEffect(() => {
     fetchProfile();
     fetchBookings();
+
+    // Register PWA service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered:', reg.scope))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    }
+
+    // Listen for PWA install prompt
+    const handleInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+
+    // Detect mobile devices (non-standalone browser)
+    const detectMobileDevice = () => {
+      const ua = navigator.userAgent;
+      const isIphone = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      const isAndroid = /Android/i.test(ua);
+      const isMobile = isIphone || isAndroid || /webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+      
+      if (isIphone) {
+        setIsIOS(true);
+      }
+      
+      if (isMobile && !isStandalone) {
+        // Show banner after 3 seconds for mobile users to prompt installation
+        setTimeout(() => setShowInstallBanner(true), 3000);
+      }
+    };
+    detectMobileDevice();
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+    };
   }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted PWA installation');
+        } else {
+          console.log('User dismissed PWA installation');
+        }
+        setDeferredPrompt(null);
+        setShowInstallBanner(false);
+      });
+    } else {
+      setShowAndroidInstructions(true);
+    }
+  };
 
   const handleAdminPinSubmit = (e) => {
     e.preventDefault();
@@ -357,6 +417,87 @@ export default function App() {
             fetchBookings(); // Refresh bookings list
           }} 
         />
+      )}
+
+      {/* PWA Install Banner */}
+      {showInstallBanner && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '24px',
+          right: '24px',
+          maxWidth: '450px',
+          margin: '0 auto',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-lg)',
+          padding: '1.25rem',
+          zIndex: 10000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
+          animation: 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <div style={{ width: '40px', height: '40px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'Georgia, serif', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--accent)' }}>S</span>
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)', display: 'block' }}>Install Shamna The Therapist</strong>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-light)', margin: 0, lineHeight: '1.3' }}>
+                  Add this app to your home screen for quick scheduling and session reminders.
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                setShowInstallBanner(false);
+                setShowAndroidInstructions(false);
+              }} 
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-light)', fontSize: '1.4rem', cursor: 'pointer', padding: '0 0.25rem', lineHeight: '1' }}
+            >
+              &times;
+            </button>
+          </div>
+          
+          {isIOS ? (
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--bg-primary)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.35rem', textAlign: 'left' }}>
+              <span>1. Tap the <strong>Share</strong> icon in Safari (bottom navigation bar).</span>
+              <span>2. Scroll down and tap <strong>Add to Home Screen</strong>.</span>
+            </div>
+          ) : showAndroidInstructions ? (
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--bg-primary)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.35rem', textAlign: 'left' }}>
+              <span>1. Tap the browser's menu (three dots in top-right corner).</span>
+              <span>2. Select <strong>Add to Home screen</strong> or <strong>Install app</strong>.</span>
+              <button 
+                onClick={() => setShowAndroidInstructions(false)} 
+                className="btn btn-secondary btn-sm" 
+                style={{ alignSelf: 'flex-end', marginTop: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+              >
+                Back
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+              <button 
+                onClick={() => setShowInstallBanner(false)} 
+                className="btn btn-secondary btn-sm" 
+                style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}
+              >
+                Not Now
+              </button>
+              <button 
+                onClick={handleInstallClick} 
+                className="btn btn-accent btn-sm" 
+                style={{ flex: 2, padding: '0.5rem', fontSize: '0.85rem', color: '#ffffff' }}
+              >
+                Install App
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
