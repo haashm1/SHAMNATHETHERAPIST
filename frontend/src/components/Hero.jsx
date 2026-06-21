@@ -11,7 +11,7 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
 
   const backendUrl = '';
   const photoUrl = profile.photo_url
-    ? profile.photo_url.startsWith('http')
+    ? (profile.photo_url.startsWith('http') || profile.photo_url.startsWith('data:'))
       ? profile.photo_url
       : `${backendUrl}${profile.photo_url}`
     : '/uploads/default-doctor.jpg';

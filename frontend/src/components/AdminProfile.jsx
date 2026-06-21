@@ -58,7 +58,7 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
 
       if (profile.photo_url) {
         setPhotoPreview(
-          profile.photo_url.startsWith('http')
+          (profile.photo_url.startsWith('http') || profile.photo_url.startsWith('data:'))
             ? profile.photo_url
             : `${backendUrl}${profile.photo_url}`
         );

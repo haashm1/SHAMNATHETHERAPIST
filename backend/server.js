@@ -70,10 +70,27 @@ const upload = multer({
   }
 });
 
-// Create default placeholder image if not present
+// Copy deployed static uploads (like default-doctor.jpg) to the ephemeral /tmp/uploads on Vercel
+const deployedUploadsDir = path.join(__dirname, 'uploads');
+if (fs.existsSync(deployedUploadsDir)) {
+  try {
+    const files = fs.readdirSync(deployedUploadsDir);
+    files.forEach(file => {
+      const srcPath = path.join(deployedUploadsDir, file);
+      const destPath = path.join(uploadDir, file);
+      if (fs.statSync(srcPath).isFile() && !fs.existsSync(destPath)) {
+        fs.copyFileSync(srcPath, destPath);
+        console.log(`Copied deployed asset ${file} to /tmp/uploads`);
+      }
+    });
+  } catch (err) {
+    console.error("Failed to copy deployed static uploads to /tmp/uploads:", err);
+  }
+}
+
+// Fallback: Create default placeholder image if not present
 const defaultImagePath = path.join(uploadDir, 'default-doctor.jpg');
 if (!fs.existsSync(defaultImagePath)) {
-  // We'll write a simple 1x1 base64 transparent pixel as fallback or generate an image shortly
   const base64Pixel = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   fs.writeFileSync(defaultImagePath, Buffer.from(base64Pixel, 'base64'));
 }
@@ -134,7 +151,21 @@ app.post('/api/profile', upload.single('photo'), async (req, res) => {
     };
 
     if (req.file) {
-      profileData.photo_url = `/uploads/${req.file.filename}`;
+      try {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const mimeType = req.file.mimetype;
+        const base64Data = fileBuffer.toString('base64');
+        profileData.photo_url = `data:${mimeType};base64,${base64Data}`;
+        
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkErr) {
+          console.warn("Failed to delete temp uploaded file:", unlinkErr.message);
+        }
+      } catch (readErr) {
+        console.error("Failed to read uploaded file for base64 conversion:", readErr);
+        profileData.photo_url = `/uploads/${req.file.filename}`;
+      }
     }
 
     if (id && id !== 'new') {
