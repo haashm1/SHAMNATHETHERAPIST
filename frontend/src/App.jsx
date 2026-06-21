@@ -141,7 +141,7 @@ export default function App() {
       setPinError('');
       setAdminPin('');
     } else {
-      setPinError('Invalid passcode. Hint: Use 1234');
+      setPinError('Invalid passcode. Please try again.');
       setAdminPin('');
     }
   };
