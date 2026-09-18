@@ -69,11 +69,13 @@ export default function Hero({ profile, onBookClick }) {
         </Reveal>
         <Reveal className="hero-intro-card" delay={160}>
           <div className="hero-portrait-frame">
-            <img src="/therapist-hero.jpg" alt={`Portrait of ${profile.name}`} className="hero-portrait" />
+            <img src="/therapist-hero-cutout.png" alt={`Portrait of ${profile.name}`} className="hero-portrait" />
           </div>
-          <div className="intro-card-mark"><HeartHandshake size={28} /></div><p className="intro-card-eyebrow">Meet your therapist</p><h2>{profile.name}</h2><p className="intro-card-title">{profile.title}</p><p className="intro-card-bio">{profile.bio}</p>
-          <div className="intro-card-details">{profile.experience && <span><ShieldCheck size={16} /> {profile.experience} experience</span>}{profile.education && <span><CheckCircle2 size={16} /> {profile.education}</span>}</div>
-          {specialties.length > 0 && <div className="doctor-specialties">{specialties.map((item) => <span key={item} className="tag">{item}</span>)}</div>}
+          <div className="therapist-panel-details">
+            <div className="intro-card-mark"><HeartHandshake size={24} /></div><p className="intro-card-eyebrow">Meet your therapist</p><h2>{profile.name}</h2><p className="intro-card-title">{profile.title}</p><p className="intro-card-bio">{profile.bio}</p>
+            <div className="intro-card-details">{profile.experience && <span><ShieldCheck size={16} /> {profile.experience} experience</span>}{profile.education && <span><CheckCircle2 size={16} /> {profile.education}</span>}</div>
+            {specialties.length > 0 && <div className="doctor-specialties">{specialties.map((item) => <span key={item} className="tag">{item}</span>)}</div>}
+          </div>
         </Reveal>
       </div>
     </section>

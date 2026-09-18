@@ -1190,17 +1190,18 @@ button {
 .hero-contact-row { display: flex; flex-wrap: wrap; gap: .85rem 1.4rem; margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); width: min(100%, 36rem); }
 .hero-contact-row a { display: inline-flex; align-items: center; gap: .4rem; color: var(--text-secondary); font-size: .8rem; font-weight: 600; }
 .hero-contact-row a:hover { color: var(--accent-hover); }
-.hero-intro-card { background: rgba(255,255,255,.76); border: 1px solid rgba(176,142,115,.25); border-radius: 2px 2.2rem 2px 2.2rem; box-shadow: 0 22px 60px rgba(77,58,44,.10); padding: clamp(2rem, 4vw, 3.5rem); position: relative; }
+.hero-intro-card { background: rgba(255,255,255,.76); border: 1px solid rgba(176,142,115,.25); border-radius: 1.5rem; box-shadow: 0 22px 60px rgba(77,58,44,.10); padding: 1.1rem; position: relative; display: grid; grid-template-columns: minmax(160px, .7fr) minmax(0, 1.3fr); align-items: stretch; gap: 1.65rem; }
 .hero-intro-card::after { content: ''; position: absolute; width: 5rem; height: 5rem; right: 1.2rem; bottom: 1.2rem; border-right: 1px solid var(--accent); border-bottom: 1px solid var(--accent); opacity: .45; }
-.hero-portrait-frame { height: clamp(17rem, 30vw, 23rem); margin: -1.1rem -1.1rem 2rem; overflow: hidden; border-radius: 2px 1.5rem 2px 1.5rem; background: var(--bg-secondary); }
-.hero-portrait { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center 38%; transition: transform 700ms cubic-bezier(.16,1,.3,1); }
-.hero-intro-card:hover .hero-portrait { transform: scale(1.035); }
-.intro-card-mark { width: 3.25rem; height: 3.25rem; display: grid; place-items: center; border-radius: 50%; color: var(--accent-hover); background: var(--bg-secondary); margin-bottom: 1.8rem; }
+.hero-portrait-frame { min-height: 18rem; align-self: stretch; overflow: hidden; border-radius: 1rem; background: linear-gradient(145deg, #e9ddd1, #cdb09a); display: flex; align-items: end; justify-content: center; }
+.hero-portrait { width: 122%; max-width: none; height: 112%; display: block; object-fit: contain; object-position: center bottom; transition: transform 700ms cubic-bezier(.16,1,.3,1); filter: drop-shadow(0 16px 14px rgba(46,37,30,.18)); }
+.hero-intro-card:hover .hero-portrait { transform: scale(1.035) translateY(-2px); }
+.therapist-panel-details { padding: 1rem .9rem 1rem 0; position: relative; z-index: 1; }
+.intro-card-mark { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border-radius: 50%; color: var(--accent-hover); background: var(--bg-secondary); margin-bottom: 1.1rem; }
 .intro-card-eyebrow { color: var(--text-light); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
 .hero-intro-card h2 { font-size: clamp(2rem, 3vw, 2.6rem); margin-top: .4rem; }
 .intro-card-title { color: var(--accent-hover); font-size: .88rem; font-weight: 700; margin-top: .25rem; }
-.intro-card-bio { font-size: .94rem; line-height: 1.75; margin-top: 1.25rem; }
-.intro-card-details { display: grid; gap: .7rem; margin-top: 1.4rem; padding-top: 1.3rem; border-top: 1px solid var(--border-color); }
+.intro-card-bio { font-size: .88rem; line-height: 1.65; margin-top: .8rem; }
+.intro-card-details { display: flex; flex-wrap: wrap; gap: .7rem 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
 .intro-card-details span { color: var(--text-secondary); display: flex; gap: .55rem; align-items: center; font-size: .82rem; font-weight: 600; }
 .intro-card-details svg { color: var(--accent); flex: 0 0 auto; }
 .doctor-specialties { position: relative; z-index: 1; margin-top: 1.5rem; }
@@ -1224,5 +1225,5 @@ button {
 .approach-card h3 { font-size: 1.5rem; margin-top: 2rem; }
 .approach-card p { font-size: .9rem; line-height: 1.75; margin-top: .75rem; max-width: 19rem; }
 @media (max-width: 800px) { .hero--editorial { padding: 4rem 0; } .hero-shell { grid-template-columns: 1fr; gap: 3rem; } .hero-copy h1 { max-width: 12ch; } .impact-header { display: block; } .impact-header > p:last-child { margin-top: .8rem; } .impact-grid, .approach-grid { grid-template-columns: 1fr; } .impact-stat { min-height: 11rem; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.18); padding: 2rem 0; } .impact-stat:last-child { border-bottom: 0; } .approach-grid { gap: 2.5rem; } }
-@media (max-width: 600px) { .hero-copy { align-items: flex-start; text-align: left; } .hero-copy h1 { font-size: 3.25rem; } .hero-actions { align-items: stretch; } .hero-text-link { justify-content: center; } .hero-contact-row { gap: .8rem; } .hero-intro-card { padding: 2rem; } .impact-section { padding: 4rem 0; } .approach-section { padding-top: 4.5rem; padding-bottom: 4.5rem; } }
+@media (max-width: 600px) { .hero-copy { align-items: flex-start; text-align: left; } .hero-copy h1 { font-size: 3.25rem; } .hero-actions { align-items: stretch; } .hero-text-link { justify-content: center; } .hero-contact-row { gap: .8rem; } .hero-intro-card { grid-template-columns: 1fr; gap: 0; padding: 1rem; } .hero-portrait-frame { min-height: 21rem; } .therapist-panel-details { padding: 1.75rem .45rem .45rem; } .impact-section { padding: 4rem 0; } .approach-section { padding-top: 4.5rem; padding-bottom: 4.5rem; } }
 @media (prefers-reduced-motion: reduce) { .scroll-reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
