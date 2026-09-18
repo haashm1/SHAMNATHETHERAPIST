@@ -23,7 +23,10 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
     contact_phone: '',
     hourly_rate: '',
     address: '',
-    meet_link: ''
+    meet_link: '',
+    total_consultations: '',
+    cases_resolved: '',
+    client_satisfaction: ''
   });
 
   const [photoFile, setPhotoFile] = useState(null);
@@ -53,7 +56,10 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
         contact_phone: profile.contact_phone || '',
         hourly_rate: profile.hourly_rate || '',
         address: profile.address || '',
-        meet_link: profile.meet_link || ''
+        meet_link: profile.meet_link || '',
+        total_consultations: profile.total_consultations || '1,500+',
+        cases_resolved: profile.cases_resolved || '1,200+',
+        client_satisfaction: profile.client_satisfaction || '98%'
       });
 
       if (profile.photo_url) {
@@ -257,6 +263,49 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
               onChange={handleChange}
               placeholder="10+ Years in Private Practice"
               required 
+            />
+          </div>
+        </div>
+
+        <h3 style={{ fontSize: '1.3rem', margin: '2rem 0 1rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+          Practice Impact & Milestone Counters (Hero Section)
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+          Highlight key success metrics (e.g. Total Consultations, Cases Cured/Resolved, Client Satisfaction) prominently on your homepage.
+        </p>
+
+        <div className="form-row-3col">
+          <div className="form-group">
+            <label>Total Consultations / Sessions</label>
+            <input 
+              type="text" 
+              name="total_consultations" 
+              className="form-control" 
+              value={formData.total_consultations} 
+              onChange={handleChange}
+              placeholder="e.g. 1,500+ Consultations"
+            />
+          </div>
+          <div className="form-group">
+            <label>Cases Cured / Resolved</label>
+            <input 
+              type="text" 
+              name="cases_resolved" 
+              className="form-control" 
+              value={formData.cases_resolved} 
+              onChange={handleChange}
+              placeholder="e.g. 1,200+ Cases Resolved"
+            />
+          </div>
+          <div className="form-group">
+            <label>Client Satisfaction / Recovery Rate</label>
+            <input 
+              type="text" 
+              name="client_satisfaction" 
+              className="form-control" 
+              value={formData.client_satisfaction} 
+              onChange={handleChange}
+              placeholder="e.g. 98% Recovery Rate"
             />
           </div>
         </div>

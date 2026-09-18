@@ -132,7 +132,10 @@ app.post('/api/profile', upload.single('photo'), async (req, res) => {
     address,
     meet_link,
     available_slots,
-    unavailable_dates
+    unavailable_dates,
+    total_consultations,
+    cases_resolved,
+    client_satisfaction
   } = req.body;
 
   try {
@@ -148,7 +151,10 @@ app.post('/api/profile', upload.single('photo'), async (req, res) => {
       address,
       meet_link,
       available_slots: available_slots || '',
-      unavailable_dates: unavailable_dates || ''
+      unavailable_dates: unavailable_dates || '',
+      total_consultations: total_consultations !== undefined ? total_consultations : '1,500+',
+      cases_resolved: cases_resolved !== undefined ? cases_resolved : '1,200+',
+      client_satisfaction: client_satisfaction !== undefined ? client_satisfaction : '98%'
     };
 
     if (req.file) {

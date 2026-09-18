@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Calendar, Clock, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight, Video, MapPin } from 'lucide-react';
 
 const formatDateToDMY = (dateStr) => {
   if (!dateStr) return '';
@@ -28,6 +28,7 @@ export default function BookingModal({ onClose, prefillData }) {
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
   const [notes, setNotes] = useState('');
+  const [consultationMode, setConsultationMode] = useState('online'); // 'online' | 'offline'
   
   const [existingBookings, setExistingBookings] = useState([]);
   const [psychologists, setPsychologists] = useState([]);
@@ -300,8 +301,9 @@ export default function BookingModal({ onClose, prefillData }) {
           booking_date: bookingDate,
           booking_time: bookingTime,
           duration_minutes: 50,
-          notes,
-          psychologist_id: selectedPsychologistId
+          notes: `[${consultationMode === 'online' ? 'Online / Video Session' : 'In-Person / Offline Visit'}] ${notes}`,
+          psychologist_id: selectedPsychologistId,
+          consultation_mode: consultationMode
         })
       });
 
@@ -321,10 +323,13 @@ export default function BookingModal({ onClose, prefillData }) {
         booking_time: bookingTime,
         therapist_name: chosenPsy.name || 'Shamna',
         therapist_phone: chosenPsy.contact_phone || '',
-        meet_link: data.booking?.meet_link || ''
+        meet_link: data.booking?.meet_link || '',
+        consultation_mode: consultationMode,
+        therapist_address: chosenPsy.address || ''
       });
 
       // Prepare WhatsApp booking confirmation text
+      const modeLabel = consultationMode === 'online' ? 'Online / Video Session' : 'In-Person / Offline Visit';
       const waText = encodeURIComponent(
         `*Session Booking Confirmation*\n` +
         `-----------------------------\n` +
@@ -332,7 +337,10 @@ export default function BookingModal({ onClose, prefillData }) {
         `*Therapist:* ${chosenPsy.name || 'Shamna'}\n` +
         `*Date:* ${formatDateToDMY(bookingDate)}\n` +
         `*Time:* ${bookingTime} (50 mins)\n` +
-        `*Google Meet:* ${data.booking?.meet_link || 'Will be shared before the session'}\n` +
+        `*Mode:* ${modeLabel}\n` +
+        (consultationMode === 'online'
+          ? `*Google Meet:* ${data.booking?.meet_link || 'Will be shared before the session'}\n`
+          : `*Location:* ${chosenPsy.address || 'Clinic address will be confirmed'}\n`) +
         `-----------------------------\n` +
         `Thank you for booking with us!`
       );
@@ -434,17 +442,36 @@ export default function BookingModal({ onClose, prefillData }) {
                     <span style={{ color: 'var(--text-light)' }}>Time:</span>
                     <strong style={{ textAlign: 'right' }}>{confirmedBookingDetails.booking_time} (50m)</strong>
                   </div>
-                  {confirmedBookingDetails.meet_link ? (
-                    <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <span style={{ color: 'var(--text-light)' }}>Google Meet:</span>
-                      <a href={confirmedBookingDetails.meet_link} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all', color: 'var(--accent)', textDecoration: 'underline', fontWeight: 600 }}>
-                        {confirmedBookingDetails.meet_link}
-                      </a>
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: 'var(--text-light)' }}>Session Mode:</span>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                      background: confirmedBookingDetails.consultation_mode === 'online' ? 'rgba(122,143,117,0.15)' : 'rgba(176,142,115,0.15)',
+                      color: confirmedBookingDetails.consultation_mode === 'online' ? '#4c5e49' : 'var(--accent)',
+                      padding: '0.2rem 0.6rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 600
+                    }}>
+                      {confirmedBookingDetails.consultation_mode === 'online' ? <Video size={12} /> : <MapPin size={12} />}
+                      {confirmedBookingDetails.consultation_mode === 'online' ? 'Online / Video' : 'In-Person / Offline'}
+                    </span>
+                  </div>
+                  {confirmedBookingDetails.consultation_mode === 'online' ? (
+                    confirmedBookingDetails.meet_link ? (
+                      <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <span style={{ color: 'var(--text-light)' }}>Google Meet Link:</span>
+                        <a href={confirmedBookingDetails.meet_link} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all', color: 'var(--accent)', textDecoration: 'underline', fontWeight: 600 }}>
+                          {confirmedBookingDetails.meet_link}
+                        </a>
+                      </div>
+                    ) : (
+                      <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <span style={{ color: 'var(--text-light)' }}>Google Meet Link:</span>
+                        <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Will be emailed to you once confirmed by the therapist.</span>
+                      </div>
+                    )
                   ) : (
                     <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <span style={{ color: 'var(--text-light)' }}>Google Meet:</span>
-                      <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Will be emailed to you once confirmed by the therapist.</span>
+                      <span style={{ color: 'var(--text-light)' }}>Clinic Address:</span>
+                      <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{confirmedBookingDetails.therapist_address || 'Address will be confirmed by the therapist.'}</span>
                     </div>
                   )}
                 </div>
@@ -474,6 +501,7 @@ export default function BookingModal({ onClose, prefillData }) {
                 {confirmedBookingDetails && (
                   <button 
                     onClick={() => {
+                      const rModeLabel = confirmedBookingDetails.consultation_mode === 'online' ? 'Online / Video Session' : 'In-Person / Offline Visit';
                       const waText = encodeURIComponent(
                         `*Session Booking Confirmation*\n` +
                         `-----------------------------\n` +
@@ -481,7 +509,10 @@ export default function BookingModal({ onClose, prefillData }) {
                         `*Therapist:* ${confirmedBookingDetails.therapist_name}\n` +
                         `*Date:* ${formatDateToDMY(confirmedBookingDetails.booking_date)}\n` +
                         `*Time:* ${confirmedBookingDetails.booking_time} (50 mins)\n` +
-                        `*Google Meet:* ${confirmedBookingDetails.meet_link || 'Will be shared before the session'}\n` +
+                        `*Mode:* ${rModeLabel}\n` +
+                        (confirmedBookingDetails.consultation_mode === 'online'
+                          ? `*Google Meet:* ${confirmedBookingDetails.meet_link || 'Will be shared before the session'}\n`
+                          : `*Location:* ${confirmedBookingDetails.therapist_address || 'Address will be confirmed'}\n`) +
                         `-----------------------------\n` +
                         `Thank you for booking with us!`
                       );
@@ -569,6 +600,69 @@ export default function BookingModal({ onClose, prefillData }) {
                     required 
                   />
                 </div>
+              </div>
+
+              {/* Consultation Mode Toggle */}
+              <div className="form-group">
+                <label style={{ fontWeight: 600, marginBottom: '0.75rem', display: 'block' }}>Consultation Type</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <button
+                    type="button"
+                    id="mode-online"
+                    onClick={() => setConsultationMode('online')}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                      padding: '0.85rem 1rem',
+                      border: `2px solid ${consultationMode === 'online' ? 'var(--accent)' : 'var(--border-color)'}`,
+                      borderRadius: 'var(--radius-md)',
+                      background: consultationMode === 'online' ? 'rgba(176,142,115,0.1)' : 'var(--bg-primary)',
+                      color: consultationMode === 'online' ? 'var(--accent)' : 'var(--text-secondary)',
+                      fontWeight: consultationMode === 'online' ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <Video size={18} />
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontWeight: 700 }}>Online</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 400, opacity: 0.8 }}>Video / Google Meet</div>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    id="mode-offline"
+                    onClick={() => setConsultationMode('offline')}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                      padding: '0.85rem 1rem',
+                      border: `2px solid ${consultationMode === 'offline' ? 'var(--accent)' : 'var(--border-color)'}`,
+                      borderRadius: 'var(--radius-md)',
+                      background: consultationMode === 'offline' ? 'rgba(176,142,115,0.1)' : 'var(--bg-primary)',
+                      color: consultationMode === 'offline' ? 'var(--accent)' : 'var(--text-secondary)',
+                      fontWeight: consultationMode === 'offline' ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <MapPin size={18} />
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontWeight: 700 }}>In-Person</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 400, opacity: 0.8 }}>Visit the Clinic</div>
+                    </div>
+                  </button>
+                </div>
+                {consultationMode === 'online' && (
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: '0.5rem' }}>
+                    📹 A Google Meet link will be emailed to you before your session.
+                  </p>
+                )}
+                {consultationMode === 'offline' && (
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: '0.5rem' }}>
+                    📍 Please arrive 10 minutes before your scheduled appointment at the clinic.
+                  </p>
+                )}
               </div>
 
               <div className="form-group">

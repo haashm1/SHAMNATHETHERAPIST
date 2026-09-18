@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Edit2, Ban, AlertTriangle, FileText, CheckCircle, Plus } from 'lucide-react';
+import { Calendar, Clock, Edit2, Ban, AlertTriangle, FileText, CheckCircle, Plus, Video, MapPin } from 'lucide-react';
 import CustomDatePicker from './CustomDatePicker';
 
 const formatDateToDMY = (dateStr) => {
@@ -295,9 +295,29 @@ export default function AdminBookings({ bookings, onRefresh, onStartCaseSheet, o
                           <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
                             {booking.client_email} | {booking.client_phone}
                           </div>
+                          {/* Session Mode Badge derived from notes prefix */}
+                          {booking.notes && (() => {
+                            const isOnline = booking.notes.startsWith('[Online');
+                            const isOffline = booking.notes.startsWith('[In-Person');
+                            if (isOnline || isOffline) {
+                              return (
+                                <span style={{
+                                  display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                                  background: isOnline ? 'rgba(122,143,117,0.15)' : 'rgba(176,142,115,0.15)',
+                                  color: isOnline ? '#4c5e49' : 'var(--accent)',
+                                  padding: '0.15rem 0.5rem', borderRadius: '50px', fontSize: '0.72rem', fontWeight: 600,
+                                  marginTop: '0.25rem'
+                                }}>
+                                  {isOnline ? <Video size={11} /> : <MapPin size={11} />}
+                                  {isOnline ? 'Online / Video' : 'In-Person / Offline'}
+                                </span>
+                              );
+                            }
+                            return null;
+                          })()}
                           {booking.notes && (
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem', fontStyle: 'italic' }}>
-                              Note: "{booking.notes}"
+                              Note: "{booking.notes.replace(/^\[.*?\]\s*/, '')}"
                             </div>
                           )}
                           

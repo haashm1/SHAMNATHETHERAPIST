@@ -19,7 +19,10 @@ function getInMemoryDefaults() {
       address: 'Suite 402, Oakwood Wellness Center, San Francisco, CA',
       meet_link: '',
       available_slots: '',
-      unavailable_dates: ''
+      unavailable_dates: '',
+      total_consultations: '1,500+',
+      cases_resolved: '1,200+',
+      client_satisfaction: '98%'
     },
     {
       id: 2,
@@ -35,7 +38,10 @@ function getInMemoryDefaults() {
       address: 'Suite 405, Oakwood Wellness Center, San Francisco, CA',
       meet_link: '',
       available_slots: '',
-      unavailable_dates: ''
+      unavailable_dates: '',
+      total_consultations: '900+',
+      cases_resolved: '750+',
+      client_satisfaction: '96%'
     }
   ];
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, ShieldAlert, Award, BookOpen, Mail, Phone, MapPin } from 'lucide-react';
+import { Calendar, ShieldAlert, Award, BookOpen, Mail, Phone, MapPin, Users, CheckCircle2, Sparkles } from 'lucide-react';
 
 export default function Hero({ profile, onBookClick, onAdminClick }) {
   if (!profile) return null;
@@ -16,6 +16,10 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
       : `${backendUrl}${profile.photo_url}`
     : '/uploads/default-doctor.jpg';
 
+  const totalConsultations = profile.total_consultations || '1,500+';
+  const casesResolved = profile.cases_resolved || '1,200+';
+  const clientSatisfaction = profile.client_satisfaction || '98%';
+
   return (
     <section className="container hero fade-in">
       <div className="hero-content">
@@ -28,8 +32,41 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
           designed to guide you through anxiety, depression, stressors, and emotional challenges, helping you rediscover 
           your inner strength.
         </p>
+
+        {/* Milestone / Success Counters Grid */}
+        <div className="hero-stats-grid">
+          <div className="hero-stat-item">
+            <div className="hero-stat-icon-wrapper">
+              <Users size={22} />
+            </div>
+            <div className="hero-stat-text-container">
+              <div className="hero-stat-number">{totalConsultations}</div>
+              <div className="hero-stat-label">Total Consultations</div>
+            </div>
+          </div>
+
+          <div className="hero-stat-item">
+            <div className="hero-stat-icon-wrapper">
+              <CheckCircle2 size={22} />
+            </div>
+            <div className="hero-stat-text-container">
+              <div className="hero-stat-number">{casesResolved}</div>
+              <div className="hero-stat-label">Cases Cured & Resolved</div>
+            </div>
+          </div>
+
+          <div className="hero-stat-item">
+            <div className="hero-stat-icon-wrapper">
+              <Sparkles size={22} />
+            </div>
+            <div className="hero-stat-text-container">
+              <div className="hero-stat-number">{clientSatisfaction}</div>
+              <div className="hero-stat-label">Client Recovery Rate</div>
+            </div>
+          </div>
+        </div>
         
-        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <a 
             href={`mailto:${profile.contact_email}`} 
             style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
@@ -110,6 +147,14 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                 <BookOpen size={16} style={{ color: 'var(--accent)' }} />
                 <span><strong>Education:</strong> {profile.education}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                <CheckCircle2 size={16} style={{ color: 'var(--accent)' }} />
+                <span><strong>Cases Resolved:</strong> {casesResolved}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                <Users size={16} style={{ color: 'var(--accent)' }} />
+                <span><strong>Consultations:</strong> {totalConsultations}</span>
               </div>
             </div>
 
