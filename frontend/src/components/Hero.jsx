@@ -1,171 +1,83 @@
-import React from 'react';
-import { Calendar, ShieldAlert, Award, BookOpen, Mail, Phone, MapPin, Users, CheckCircle2, Sparkles } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowDownRight, Calendar, CheckCircle2, HeartHandshake, Mail, MapPin, Phone, ShieldCheck, Sparkles, Users } from 'lucide-react';
 
-export default function Hero({ profile, onBookClick, onAdminClick }) {
+function parseStat(value = '') {
+  const match = String(value).replace(/,/g, '').match(/^(\d+(?:\.\d+)?)(.*)$/);
+  return match ? { number: Number(match[1]), suffix: match[2] } : { number: 0, suffix: value };
+}
+
+function useScrollNumber(value, elementRef) {
+  const [display, setDisplay] = useState('0');
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element) return undefined;
+    const { number, suffix } = parseStat(value);
+    const decimal = String(value).includes('.');
+    const update = () => {
+      const rect = element.getBoundingClientRect();
+      const progress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = decimal ? (number * eased).toFixed(1) : Math.round(number * eased).toLocaleString('en-IN');
+      setDisplay(`${current}${suffix}`);
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { window.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, [elementRef, value]);
+  return display;
+}
+
+function Reveal({ children, className = '', delay = 0 }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return undefined;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setVisible(true); observer.unobserve(node); }
+    }, { threshold: 0.12 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return <div ref={ref} className={`scroll-reveal ${visible ? 'is-visible' : ''} ${className}`} style={{ '--reveal-delay': `${delay}ms` }}>{children}</div>;
+}
+
+function ScrollStat({ value, label, icon }) {
+  const ref = useRef(null);
+  const display = useScrollNumber(value, ref);
+  return <article ref={ref} className="impact-stat"><span className="impact-stat-icon">{icon}</span><strong>{display}</strong><span>{label}</span></article>;
+}
+
+export default function Hero({ profile, onBookClick }) {
   if (!profile) return null;
-
-  // Split specialties string into tags
-  const specialtiesTags = profile.specialties
-    ? profile.specialties.split(',').map(s => s.trim())
-    : [];
-
-  const backendUrl = '';
-  const photoUrl = profile.photo_url
-    ? (profile.photo_url.startsWith('http') || profile.photo_url.startsWith('data:'))
-      ? profile.photo_url
-      : `${backendUrl}${profile.photo_url}`
-    : '/uploads/default-doctor.jpg';
-
+  const specialties = profile.specialties ? profile.specialties.split(',').map((item) => item.trim()) : [];
   const totalConsultations = profile.total_consultations || '1,500+';
   const casesResolved = profile.cases_resolved || '1,200+';
   const clientSatisfaction = profile.client_satisfaction || '98%';
 
-  return (
-    <section className="container hero fade-in">
-      <div className="hero-content">
-        <span className="hero-subtitle">Professional Psychological Counseling</span>
-        <h1 className="hero-title">
-          Find Balance, Clarity & Healing In Your Life
-        </h1>
-        <p className="hero-description">
-          Welcome to a safe space designed for self-discovery and recovery. I offer client-centered therapy 
-          designed to guide you through anxiety, depression, stressors, and emotional challenges, helping you rediscover 
-          your inner strength.
-        </p>
-
-        {/* Milestone / Success Counters Grid */}
-        <div className="hero-stats-grid">
-          <div className="hero-stat-item">
-            <div className="hero-stat-icon-wrapper">
-              <Users size={22} />
-            </div>
-            <div className="hero-stat-text-container">
-              <div className="hero-stat-number">{totalConsultations}</div>
-              <div className="hero-stat-label">Total Consultations</div>
-            </div>
+  return <>
+    <section className="hero hero--editorial">
+      <div className="hero-aura hero-aura--one" /><div className="hero-aura hero-aura--two" />
+      <div className="container hero-shell">
+        <Reveal className="hero-copy" delay={40}>
+          <p className="hero-kicker"><Sparkles size={15} /> A gentle place to begin</p>
+          <h1>Find your way back to <em>yourself.</em></h1>
+          <p className="hero-description">Thoughtful, client-centred counselling for the moments when you need space, clarity, and support to move forward.</p>
+          <div className="hero-actions"><button onClick={onBookClick} className="btn btn-accent"><Calendar size={18} /> Book a consultation</button><a className="hero-text-link" href="#approach">Explore my approach <ArrowDownRight size={18} /></a></div>
+          <div className="hero-contact-row" aria-label="Contact details"><a href={`mailto:${profile.contact_email}`}><Mail size={15} /> Email</a><a href={`tel:${profile.contact_phone}`}><Phone size={15} /> Call</a>{profile.address && <a href={`https://maps.google.com/?q=${encodeURIComponent(profile.address)}`} target="_blank" rel="noreferrer"><MapPin size={15} /> Location</a>}</div>
+        </Reveal>
+        <Reveal className="hero-intro-card" delay={160}>
+          <div className="hero-portrait-frame">
+            <img src="/therapist-hero.jpg" alt={`Portrait of ${profile.name}`} className="hero-portrait" />
           </div>
-
-          <div className="hero-stat-item">
-            <div className="hero-stat-icon-wrapper">
-              <CheckCircle2 size={22} />
-            </div>
-            <div className="hero-stat-text-container">
-              <div className="hero-stat-number">{casesResolved}</div>
-              <div className="hero-stat-label">Cases Cured & Resolved</div>
-            </div>
-          </div>
-
-          <div className="hero-stat-item">
-            <div className="hero-stat-icon-wrapper">
-              <Sparkles size={22} />
-            </div>
-            <div className="hero-stat-text-container">
-              <div className="hero-stat-number">{clientSatisfaction}</div>
-              <div className="hero-stat-label">Client Recovery Rate</div>
-            </div>
-          </div>
-        </div>
-        
-        <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <a 
-            href={`mailto:${profile.contact_email}`} 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-          >
-            <Mail size={18} className="text-light" />
-            <span>{profile.contact_email}</span>
-          </a>
-          <a 
-            href={`tel:${profile.contact_phone}`} 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-          >
-            <Phone size={18} className="text-light" />
-            <span>{profile.contact_phone}</span>
-          </a>
-          <a 
-            href={`https://maps.google.com/?q=${encodeURIComponent(profile.address)}`} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-          >
-            <MapPin size={18} className="text-light" />
-            <span style={{ fontSize: '0.9rem' }}>{profile.address}</span>
-          </a>
-        </div>
-
-        <div className="hero-actions">
-          <button onClick={onBookClick} className="btn btn-accent">
-            <Calendar size={18} /> Book a Consultation
-          </button>
-          <a 
-            href={`https://wa.me/${profile.contact_phone ? (profile.contact_phone.replace(/\D/g, '').length === 10 ? '91' + profile.contact_phone.replace(/\D/g, '') : profile.contact_phone.replace(/\D/g, '')) : ''}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-secondary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-              <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.982L2 22l5.202-1.362a9.927 9.927 0 0 0 4.808 1.226h.003c5.502 0 9.99-4.479 9.991-9.986.002-2.67-1.037-5.18-2.93-7.071c-1.893-1.892-4.407-2.93-7.065-2.927zM6.883 18.06l-.32-.19a8.337 8.337 0 0 1-3.66-6.155c-.015-4.602 3.733-8.355 8.342-8.358a8.318 8.318 0 0 1 5.9 2.449c1.577 1.579 2.445 3.677 2.443 5.908c-.005 4.606-3.753 8.358-8.36 8.358h-.002a8.293 8.293 0 0 1-4.225-1.162l-.303-.18L4.35 19.34l.322-2.585l.178-.291-.013-.016l.169-.272-.169-.148c-.767-1.258-1.185-2.73-1.185-4.218zm9.324-4.838c-.288-.144-1.705-.84-1.968-.936c-.263-.096-.454-.144-.645.144c-.191.288-.741.936-.908 1.127c-.167.191-.334.215-.622.072a7.842 7.842 0 0 1-2.31-1.424a8.665 8.665 0 0 1-1.6-1.993c-.167-.288-.018-.444.126-.587c.129-.129.288-.335.431-.502c.144-.167.191-.288.288-.479c.096-.191.048-.36-.024-.503c-.072-.144-.645-1.554-.884-2.13c-.233-.564-.47-.487-.645-.496l-.551-.01c-.191 0-.502.072-.765.36c-.263.288-1.004.981-1.004 2.394s1.028 2.78 1.171 2.971c.144.191 2.022 3.088 4.9 4.331c.685.295 1.22.471 1.637.603c.688.219 1.314.188 1.808.115c.551-.082 1.705-.697 1.944-1.37c.24-.672.24-1.249.167-1.37c-.072-.121-.263-.193-.551-.337z"/>
-            </svg>
-            Chat on WhatsApp
-          </a>
-        </div>
-      </div>
-
-      <div className="doctor-card-section" id="doctor-card-section">
-        <div className="doctor-card">
-          <div className="doctor-img-container">
-            <img 
-              src={photoUrl} 
-              alt={profile.name} 
-              className="doctor-img"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/default-doctor.jpg';
-              }} 
-            />
-          </div>
-          <div className="doctor-info">
-            <h3 style={{ fontSize: '1.4rem' }}>{profile.name}</h3>
-            <span className="text-secondary" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)' }}>
-              {profile.title}
-            </span>
-            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
-              {profile.bio}
-            </p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                <Award size={16} style={{ color: 'var(--accent)' }} />
-                <span><strong>Experience:</strong> {profile.experience}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                <BookOpen size={16} style={{ color: 'var(--accent)' }} />
-                <span><strong>Education:</strong> {profile.education}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                <CheckCircle2 size={16} style={{ color: 'var(--accent)' }} />
-                <span><strong>Cases Resolved:</strong> {casesResolved}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-                <Users size={16} style={{ color: 'var(--accent)' }} />
-                <span><strong>Consultations:</strong> {totalConsultations}</span>
-              </div>
-            </div>
-
-            <div className="doctor-specialties">
-              {specialtiesTags.map((tag, idx) => (
-                <span key={idx} className="tag">{tag}</span>
-              ))}
-            </div>
-          </div>
-        </div>
+          <div className="intro-card-mark"><HeartHandshake size={28} /></div><p className="intro-card-eyebrow">Meet your therapist</p><h2>{profile.name}</h2><p className="intro-card-title">{profile.title}</p><p className="intro-card-bio">{profile.bio}</p>
+          <div className="intro-card-details">{profile.experience && <span><ShieldCheck size={16} /> {profile.experience} experience</span>}{profile.education && <span><CheckCircle2 size={16} /> {profile.education}</span>}</div>
+          {specialties.length > 0 && <div className="doctor-specialties">{specialties.map((item) => <span key={item} className="tag">{item}</span>)}</div>}
+        </Reveal>
       </div>
     </section>
-  );
+    <section className="impact-section" aria-label="Practice impact"><div className="container"><Reveal className="impact-header"><p className="section-label">A practice built on progress</p><p>These figures respond to your scroll — pause anywhere to take them in.</p></Reveal><Reveal className="impact-grid" delay={120}><ScrollStat value={totalConsultations} label="Consultations attended" icon={<Users size={21} />} /><ScrollStat value={casesResolved} label="Care journeys supported" icon={<CheckCircle2 size={21} />} /><ScrollStat value={clientSatisfaction} label="Client recovery rate" icon={<Sparkles size={21} />} /></Reveal></div></section>
+    <section className="approach-section container" id="approach"><Reveal className="approach-heading"><p className="section-label">How we can work together</p><h2>Care that meets you where you are.</h2></Reveal><div className="approach-grid">{[['01', 'Make space', 'A confidential first conversation gives you room to share what is on your mind.'], ['02', 'Find clarity', 'Together, we gently identify patterns, strengths, and practical next steps.'], ['03', 'Move forward', 'Build a steadier relationship with yourself, at a pace that feels right.']].map(([number, title, description], index) => <Reveal className="approach-card" delay={index * 110} key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></Reveal>)}</div></section>
+  </>;
 }
