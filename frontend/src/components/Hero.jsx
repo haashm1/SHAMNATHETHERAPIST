@@ -6,25 +6,47 @@ function parseStat(value = '') {
   return match ? { number: Number(match[1]), suffix: match[2] } : { number: 0, suffix: value };
 }
 
-function useScrollNumber(value, elementRef) {
-  const [display, setDisplay] = useState('0');
+function formatStat(number, suffix, decimal) {
+  const current = decimal ? number.toFixed(1) : Math.round(number).toLocaleString('en-IN');
+  return `${current}${suffix}`;
+}
+
+function useCountUp(value, elementRef) {
+  const parsed = parseStat(value);
+  const [display, setDisplay] = useState(() => formatStat(0, parsed.suffix, String(value).includes('.')));
+
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return undefined;
-    const { number, suffix } = parseStat(value);
-    const decimal = String(value).includes('.');
-    const update = () => {
-      const rect = element.getBoundingClientRect();
-      const progress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = decimal ? (number * eased).toFixed(1) : Math.round(number * eased).toLocaleString('en-IN');
-      setDisplay(`${current}${suffix}`);
+    const { number: target, suffix: nextSuffix } = parseStat(value);
+    const hasDecimal = String(value).includes('.');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplay(formatStat(target, nextSuffix, hasDecimal));
+      return undefined;
+    }
+
+    let raf;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(element);
+      const duration = 1400;
+      const start = performance.now();
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        setDisplay(formatStat(target * eased, nextSuffix, hasDecimal));
+        if (t < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    }, { threshold: 0.45 });
+
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      if (raf) cancelAnimationFrame(raf);
     };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => { window.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
   }, [elementRef, value]);
+
   return display;
 }
 
@@ -45,11 +67,22 @@ function Reveal({ children, className = '', delay = 0 }) {
 
 function ScrollStat({ value, label, icon }) {
   const ref = useRef(null);
-  const display = useScrollNumber(value, ref);
+  const display = useCountUp(value, ref);
   return <article ref={ref} className="impact-stat"><span className="impact-stat-icon">{icon}</span><strong>{display}</strong><span>{label}</span></article>;
 }
 
 export default function Hero({ profile, onBookClick }) {
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const updateMotion = () => {
+      heroRef.current?.style.setProperty('--scroll-shift', `${Math.min(window.scrollY, 900)}`);
+    };
+    updateMotion();
+    window.addEventListener('scroll', updateMotion, { passive: true });
+    return () => window.removeEventListener('scroll', updateMotion);
+  }, []);
+
   if (!profile) return null;
   const specialties = profile.specialties ? profile.specialties.split(',').map((item) => item.trim()) : [];
   const totalConsultations = profile.total_consultations || '1,500+';
@@ -57,8 +90,12 @@ export default function Hero({ profile, onBookClick }) {
   const clientSatisfaction = profile.client_satisfaction || '98%';
 
   return <>
-    <section className="hero hero--editorial">
+    <section ref={heroRef} className="hero hero--editorial">
       <div className="hero-aura hero-aura--one" /><div className="hero-aura hero-aura--two" />
+      <div className="hero-orbit hero-orbit--large" aria-hidden="true"><span /><span /><span /></div>
+      <div className="hero-orbit hero-orbit--small" aria-hidden="true"><span /><span /></div>
+      <div className="hero-floating-note hero-floating-note--one" aria-hidden="true"><Sparkles size={15} /> Take your time</div>
+      <div className="hero-floating-note hero-floating-note--two" aria-hidden="true"><HeartHandshake size={15} /> A space for you</div>
       <div className="container hero-shell">
         <Reveal className="hero-copy" delay={40}>
           <p className="hero-kicker"><Sparkles size={15} /> A gentle place to begin</p>
@@ -72,14 +109,16 @@ export default function Hero({ profile, onBookClick }) {
             <img src="/therapist-hero-cutout.png" alt={`Portrait of ${profile.name}`} className="hero-portrait" />
           </div>
           <div className="therapist-panel-details">
-            <div className="intro-card-mark"><HeartHandshake size={24} /></div><p className="intro-card-eyebrow">Meet your therapist</p><h2>{profile.name}</h2><p className="intro-card-title">{profile.title}</p><p className="intro-card-bio">{profile.bio}</p>
+            <p className="intro-card-eyebrow">Meet your therapist</p>
+            <h2>{profile.name}</h2>
+            <p className="intro-card-title">{profile.title}</p>
             <div className="intro-card-details">{profile.experience && <span><ShieldCheck size={16} /> {profile.experience} experience</span>}{profile.education && <span><CheckCircle2 size={16} /> {profile.education}</span>}</div>
             {specialties.length > 0 && <div className="doctor-specialties">{specialties.map((item) => <span key={item} className="tag">{item}</span>)}</div>}
           </div>
         </Reveal>
       </div>
     </section>
-    <section className="impact-section" aria-label="Practice impact"><div className="container"><Reveal className="impact-header"><p className="section-label">A practice built on progress</p><p>These figures respond to your scroll — pause anywhere to take them in.</p></Reveal><Reveal className="impact-grid" delay={120}><ScrollStat value={totalConsultations} label="Consultations attended" icon={<Users size={21} />} /><ScrollStat value={casesResolved} label="Care journeys supported" icon={<CheckCircle2 size={21} />} /><ScrollStat value={clientSatisfaction} label="Client recovery rate" icon={<Sparkles size={21} />} /></Reveal></div></section>
+    <section className="impact-section" aria-label="Practice impact"><div className="container"><Reveal className="impact-header"><p className="section-label">A practice built on progress</p></Reveal><Reveal className="impact-grid" delay={120}><ScrollStat value={totalConsultations} label="Consultations attended" icon={<Users size={21} />} /><ScrollStat value={casesResolved} label="Care journeys supported" icon={<CheckCircle2 size={21} />} /><ScrollStat value={clientSatisfaction} label="Client recovery rate" icon={<Sparkles size={21} />} /></Reveal></div></section>
     <section className="approach-section container" id="approach"><Reveal className="approach-heading"><p className="section-label">How we can work together</p><h2>Care that meets you where you are.</h2></Reveal><div className="approach-grid">{[['01', 'Make space', 'A confidential first conversation gives you room to share what is on your mind.'], ['02', 'Find clarity', 'Together, we gently identify patterns, strengths, and practical next steps.'], ['03', 'Move forward', 'Build a steadier relationship with yourself, at a pace that feels right.']].map(([number, title, description], index) => <Reveal className="approach-card" delay={index * 110} key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></Reveal>)}</div></section>
   </>;
 }
