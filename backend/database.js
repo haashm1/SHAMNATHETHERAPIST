@@ -13,16 +13,18 @@ function getInMemoryDefaults() {
       specialties: 'Anxiety,Depression,Relationship Counseling,CBT,Mindfulness-Based Therapy',
       education: 'Ph.D. in Clinical Psychology - Stanford University',
       experience: '12+ Years in Private Practice, Former Lead Therapist at Mindspace Clinic',
-      photo_url: '/uploads/default-doctor.jpg',
+      photo_url: '/therapist-hero-cutout.png',
       contact_email: 'therapist.shamna@gmail.com',
       contact_phone: '+1 (555) 839-2810',
+      contact_whatsapp: '+1 (555) 839-2810',
+      contact_linkedin: 'https://linkedin.com/in/shamna-therapist',
       address: 'Suite 402, Oakwood Wellness Center, San Francisco, CA',
       meet_link: '',
       available_slots: '',
       unavailable_dates: '',
-      total_consultations: '1,500+',
-      cases_resolved: '1,200+',
-      client_satisfaction: '98%'
+      total_consultations: '8,000+',
+      cases_resolved: '8,000+',
+      client_satisfaction: '100%'
     },
     {
       id: 2,

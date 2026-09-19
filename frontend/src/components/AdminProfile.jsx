@@ -21,6 +21,8 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
     experience: '',
     contact_email: '',
     contact_phone: '',
+    contact_whatsapp: '',
+    contact_linkedin: '',
     hourly_rate: '',
     address: '',
     meet_link: '',
@@ -54,12 +56,14 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
         experience: profile.experience || '',
         contact_email: profile.contact_email || '',
         contact_phone: profile.contact_phone || '',
+        contact_whatsapp: profile.contact_whatsapp || '',
+        contact_linkedin: profile.contact_linkedin || '',
         hourly_rate: profile.hourly_rate || '',
         address: profile.address || '',
         meet_link: profile.meet_link || '',
-        total_consultations: profile.total_consultations || '1,500+',
-        cases_resolved: profile.cases_resolved || '1,200+',
-        client_satisfaction: profile.client_satisfaction || '98%'
+        total_consultations: profile.total_consultations || '8,000+',
+        cases_resolved: profile.cases_resolved || '8,000+',
+        client_satisfaction: profile.client_satisfaction || '100%'
       });
 
       if (profile.photo_url) {
@@ -283,29 +287,29 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
               className="form-control" 
               value={formData.total_consultations} 
               onChange={handleChange}
-              placeholder="e.g. 1,500+ Consultations"
+              placeholder="e.g. 8,000+"
             />
           </div>
           <div className="form-group">
-            <label>Cases Cured / Resolved</label>
+            <label>Care Journeys Supported</label>
             <input 
               type="text" 
               name="cases_resolved" 
               className="form-control" 
               value={formData.cases_resolved} 
               onChange={handleChange}
-              placeholder="e.g. 1,200+ Cases Resolved"
+              placeholder="e.g. 8,000+"
             />
           </div>
           <div className="form-group">
-            <label>Client Satisfaction / Recovery Rate</label>
+            <label>Client Recovery Rate</label>
             <input 
               type="text" 
               name="client_satisfaction" 
               className="form-control" 
               value={formData.client_satisfaction} 
               onChange={handleChange}
-              placeholder="e.g. 98% Recovery Rate"
+              placeholder="e.g. 100%"
             />
           </div>
         </div>
@@ -323,18 +327,48 @@ export default function AdminProfile({ profile, onProfileUpdate }) {
               className="form-control" 
               value={formData.contact_email} 
               onChange={handleChange}
+              placeholder="e.g. therapist.shamna@gmail.com"
               required 
             />
           </div>
           <div className="form-group">
-            <label>Contact Phone</label>
+            <label>Contact Phone (Call)</label>
             <input 
               type="text" 
               name="contact_phone" 
               className="form-control" 
               value={formData.contact_phone} 
               onChange={handleChange}
+              placeholder="e.g. +1 (555) 839-2810"
               required 
+            />
+          </div>
+        </div>
+
+        <div className="form-row-2col">
+          <div className="form-group">
+            <label>WhatsApp Number</label>
+            <input 
+              type="text" 
+              name="contact_whatsapp" 
+              className="form-control" 
+              value={formData.contact_whatsapp} 
+              onChange={handleChange}
+              placeholder="e.g. +1 (555) 839-2810 or 919876543210"
+            />
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
+              Direct WhatsApp chat link will be generated for clients
+            </p>
+          </div>
+          <div className="form-group">
+            <label>LinkedIn Profile URL</label>
+            <input 
+              type="url" 
+              name="contact_linkedin" 
+              className="form-control" 
+              value={formData.contact_linkedin} 
+              onChange={handleChange}
+              placeholder="e.g. https://linkedin.com/in/shamna-therapist"
             />
           </div>
         </div>

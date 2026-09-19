@@ -1,68 +1,117 @@
-import React from 'react';
-import { Calendar, User, Key, LayoutDashboard } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, LayoutDashboard, Menu, X } from 'lucide-react';
 
 export default function Navbar({ currentView, onViewChange, psychologistName, onBookClick, profile }) {
+  const [activeLink, setActiveLink] = useState('home');
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navLinks = [
+    { id: 'top',      key: 'home',     label: 'Home' },
+    { id: 'about',    key: 'about',    label: 'About' },
+    { id: 'approach', key: 'approach', label: 'Approach' },
+    { id: 'services', key: 'services', label: 'Services' },
+    { id: 'contact',  key: 'contact',  label: 'Contact' },
+  ];
+
+  const scrollToSection = (id, linkName) => {
+    setMenuOpen(false);
+    setActiveLink(linkName);
+    if (currentView !== 'client') {
+      onViewChange('client');
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+      return;
+    }
+    if (id === 'top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <nav className="navbar">
-      <div className="container nav-container">
-        <div className="logo" style={{ cursor: 'pointer' }} onClick={() => onViewChange('client')}>
-          <span>Shamna</span> <span style={{ color: 'var(--text-primary)' }}>The Therapist</span>
+    <header className="navbar-editorial">
+      <div className="container nav-editorial-container">
+        {/* Brand Logo matching screenshot */}
+        <div 
+          className="editorial-logo" 
+          onClick={() => scrollToSection('top', 'home')}
+          role="button"
+          tabIndex={0}
+        >
+          <span className="logo-shamna">Shamna</span>
+          <span className="logo-tagline"> the Therapist</span>
         </div>
-        <div className="nav-links">
+
+        {/* Desktop Center Navigation */}
+        {currentView === 'client' && (
+          <nav className="editorial-nav-links" aria-label="Main Navigation">
+            {navLinks.map(({ id, key, label }) => (
+              <button
+                key={key}
+                onClick={() => scrollToSection(id, key)}
+                className={`nav-item-btn ${activeLink === key ? 'is-active' : ''}`}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        )}
+
+        {/* Right: Book + Hamburger */}
+        <div className="nav-editorial-actions">
           {currentView === 'client' ? (
             <>
-              <button 
-                onClick={() => onViewChange('client')}
-                className="btn btn-secondary"
-                style={{ fontWeight: 600, border: 'none', background: 'transparent' }}
-              >
-                Home
+              <button onClick={onBookClick} className="editorial-btn-book nav-book-desktop">
+                <Calendar size={16} />
+                <span>Book a Consultation</span>
               </button>
-              <button 
-                onClick={() => {
-                  // Scroll to doctor card
-                  const el = document.getElementById('doctor-card-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="btn btn-secondary"
-                style={{ fontWeight: 600, border: 'none', background: 'transparent' }}
+              <button
+                className="nav-hamburger"
+                onClick={() => setMenuOpen((o) => !o)}
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={menuOpen}
               >
-                About Me
+                {menuOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
-              <button 
-                onClick={onBookClick}
-                className="btn btn-accent btn-sm"
-                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-              >
-                Book Session
-              </button>
-              {profile && (
-                <a 
-                  href={`https://wa.me/${profile.contact_phone ? (profile.contact_phone.replace(/\D/g, '').length === 10 ? '91' + profile.contact_phone.replace(/\D/g, '') : profile.contact_phone.replace(/\D/g, '')) : ''}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary btn-sm"
-                  style={{ backgroundColor: '#25D366', color: 'white', borderColor: '#25D366', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                >
-                  WhatsApp Chat
-                </a>
-              )}
             </>
           ) : (
-            <>
-              <span className="text-secondary" style={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                Logged in as <strong>{psychologistName || 'Psychologist'}</strong>
-              </span>
-              <button 
-                onClick={() => onViewChange('client')} 
+            <div className="admin-status-pill">
+              <span>Logged in as <strong>{psychologistName || 'Psychologist'}</strong></span>
+              <button
+                onClick={() => onViewChange('client')}
                 className="btn btn-secondary btn-sm"
               >
-                <LayoutDashboard size={16} /> View Client Site
+                <LayoutDashboard size={15} /> View Client Site
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>
-    </nav>
+      {/* Mobile Drawer */}
+      {currentView === 'client' && menuOpen && (
+        <div className="nav-mobile-drawer" aria-label="Mobile Navigation">
+          {navLinks.map(({ id, key, label }) => (
+            <button
+              key={key}
+              onClick={() => scrollToSection(id, key)}
+              className={`nav-mobile-link ${activeLink === key ? 'is-active' : ''}`}
+            >
+              {label}
+            </button>
+          ))}
+          <button
+            onClick={() => { setMenuOpen(false); onBookClick(); }}
+            className="nav-mobile-book-btn"
+          >
+            <Calendar size={16} /> Book a Consultation
+          </button>
+        </div>
+      )}
+    </header>
   );
 }

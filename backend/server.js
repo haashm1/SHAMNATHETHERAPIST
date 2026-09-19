@@ -129,6 +129,8 @@ app.post('/api/profile', upload.single('photo'), async (req, res) => {
     experience,
     contact_email,
     contact_phone,
+    contact_whatsapp,
+    contact_linkedin,
     address,
     meet_link,
     available_slots,
@@ -148,13 +150,15 @@ app.post('/api/profile', upload.single('photo'), async (req, res) => {
       experience,
       contact_email,
       contact_phone,
+      contact_whatsapp: contact_whatsapp || '',
+      contact_linkedin: contact_linkedin || '',
       address,
       meet_link,
       available_slots: available_slots || '',
       unavailable_dates: unavailable_dates || '',
-      total_consultations: total_consultations !== undefined ? total_consultations : '1,500+',
-      cases_resolved: cases_resolved !== undefined ? cases_resolved : '1,200+',
-      client_satisfaction: client_satisfaction !== undefined ? client_satisfaction : '98%'
+      total_consultations: total_consultations !== undefined ? total_consultations : '8,000+',
+      cases_resolved: cases_resolved !== undefined ? cases_resolved : '8,000+',
+      client_satisfaction: client_satisfaction !== undefined ? client_satisfaction : '100%'
     };
 
     if (req.file) {
