@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -29,11 +31,68 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const IS_PROD = process.env.NODE_ENV === 'production';
 
-// Enable CORS and JSON parsing
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// ── Security Headers (Helmet) ────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false // Allow embedding of images/assets
+}));
+
+// ── CORS — only allow the real frontend origin ───────────────────
+const ALLOWED_ORIGINS = [
+  'https://shamnathetherapist.com',
+  'https://www.shamnathetherapist.com',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (server-to-server, curl, Postman in dev)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy: origin not allowed'));
+    }
+  },
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// ── Body size limits (reduced from 50 MB → 5 MB) ────────────────
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
+
+// ── Global rate limiter: 100 req per 15 min per IP ───────────────
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' }
+});
+app.use('/api/', globalLimiter);
+
+// ── Booking creation limiter: 10 req per 15 min per IP ──────────
+const bookingLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many booking attempts. Please slow down and try again later.' }
+});
 
 // Ensure upload directory exists
 let uploadDir = path.join(__dirname, 'uploads');
@@ -60,14 +119,16 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max upload
   fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|webp/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
-    if (mimetype && extname) {
+    const ALLOWED_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const ALLOWED_EXT = /\.(jpeg|jpg|png|webp)$/i;
+    const extOk = ALLOWED_EXT.test(path.extname(file.originalname));
+    const mimeOk = ALLOWED_MIME.includes(file.mimetype);
+    if (mimeOk && extOk) {
       return cb(null, true);
     }
-    cb(new Error('Only images (jpg, jpeg, png, webp) are allowed!'));
+    cb(new Error('Only images (jpg, jpeg, png, webp) under 5 MB are allowed!'));
   }
 });
 
@@ -213,11 +274,23 @@ app.get('/api/bookings', async (req, res) => {
 });
 
 // Create Booking (with Conflict Checking)
-app.post('/api/bookings', async (req, res) => {
+app.post('/api/bookings', bookingLimiter, async (req, res) => {
   const { client_name, client_email, client_phone, booking_date, booking_time, duration_minutes, notes, meet_link, psychologist_id } = req.body;
 
+  // Input validation
   if (!client_name || !client_email || !client_phone || !booking_date || !booking_time || !notes) {
     return res.status(400).json({ error: 'Missing required booking fields. Please provide all details, including notes.' });
+  }
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!EMAIL_RE.test(client_email)) {
+    return res.status(400).json({ error: 'Invalid email address.' });
+  }
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  if (!DATE_RE.test(booking_date)) {
+    return res.status(400).json({ error: 'Invalid booking_date format. Use YYYY-MM-DD.' });
+  }
+  if (typeof client_name !== 'string' || client_name.trim().length < 2 || client_name.trim().length > 100) {
+    return res.status(400).json({ error: 'client_name must be between 2 and 100 characters.' });
   }
 
   const activePsyId = psychologist_id ? parseInt(psychologist_id, 10) : 1;
@@ -483,8 +556,18 @@ app.get('/api/status', (req, res) => {
   res.json(firebaseStatus);
 });
 
+// ── Global error handler — never leak stack traces to clients ───
+app.use((err, req, res, _next) => {
+  if (IS_PROD) {
+    console.error('[ERROR]', err.message);
+    res.status(err.status || 500).json({ error: 'An unexpected error occurred.' });
+  } else {
+    res.status(err.status || 500).json({ error: err.message, stack: err.stack });
+  }
+});
+
 // Start Server
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Psychologist platform backend running at http://localhost:${PORT}`);
   });
