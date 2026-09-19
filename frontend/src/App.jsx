@@ -6,6 +6,7 @@ import AdminProfile from './components/AdminProfile';
 import AdminBookings from './components/AdminBookings';
 import CaseSheetEditor from './components/CaseSheetEditor';
 import AdminClients from './components/AdminClients';
+import MaintenancePage from './components/MaintenancePage';
 import { Lock, LogOut, Calendar, User, FileText, CheckCircle } from 'lucide-react';
 
 export default function App() {
@@ -13,6 +14,21 @@ export default function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminPin, setAdminPin] = useState('');
   const [pinError, setPinError] = useState('');
+
+  // Maintenance mode detection (via ?maintenance=true query, env, or localStorage)
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(() => {
+    try {
+      const query = new URLSearchParams(window.location.search);
+      if (query.get('maintenance') === 'true') return true;
+      if (query.get('maintenance') === 'false') {
+        localStorage.removeItem('shampsy_maintenance');
+        return false;
+      }
+      return localStorage.getItem('shampsy_maintenance') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   const [profile, setProfile] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -164,6 +180,24 @@ export default function App() {
     }
   };
 
+  // If site is in maintenance mode and user is not in admin login
+  if (isMaintenanceMode && view !== 'admin') {
+    return (
+      <MaintenancePage 
+        onRetry={() => {
+          if (window.location.search.includes('maintenance')) {
+            window.location.href = window.location.pathname;
+          } else {
+            window.location.reload();
+          }
+        }}
+        onAdminLogin={() => {
+          setView('admin');
+        }}
+      />
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar 
@@ -251,13 +285,31 @@ export default function App() {
                       Manage client appointments, profile updates, and digital case sheets.
                     </p>
                   </div>
-                  <button 
-                    onClick={() => setIsAdminAuthenticated(false)} 
-                    className="btn btn-secondary btn-sm"
-                    style={{ gap: '0.25rem' }}
-                  >
-                    <LogOut size={14} /> Lock Dashboard
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button 
+                      onClick={() => {
+                        const next = !isMaintenanceMode;
+                        setIsMaintenanceMode(next);
+                        if (next) {
+                          localStorage.setItem('shampsy_maintenance', 'true');
+                        } else {
+                          localStorage.removeItem('shampsy_maintenance');
+                        }
+                      }}
+                      className={`btn btn-sm ${isMaintenanceMode ? 'btn-accent' : 'btn-secondary'}`}
+                      style={{ fontSize: '0.82rem' }}
+                      title="Toggle public under-maintenance screen"
+                    >
+                      {isMaintenanceMode ? '🚧 Maintenance: ON' : '🟢 Site: LIVE'}
+                    </button>
+                    <button 
+                      onClick={() => setIsAdminAuthenticated(false)} 
+                      className="btn btn-secondary btn-sm"
+                      style={{ gap: '0.25rem' }}
+                    >
+                      <LogOut size={14} /> Lock Dashboard
+                    </button>
+                  </div>
                 </div>
 
                 {/* Dashboard Sub-Tabs Navigation */}
