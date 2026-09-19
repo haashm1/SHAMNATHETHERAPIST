@@ -37,6 +37,7 @@ function useCountUp(value, elementRef) {
     const element = elementRef.current;
     if (!element) return undefined;
     startedRef.current = false;
+
     const { number: target, suffix: nextSuffix } = parseStat(value);
     const decimal = String(value).includes('.');
     const finish = () => setDisplay(formatStat(target, nextSuffix, decimal));
@@ -47,11 +48,11 @@ function useCountUp(value, elementRef) {
     }
 
     let raf;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting || startedRef.current) return;
+
+    const runAnimation = () => {
+      if (startedRef.current) return;
       startedRef.current = true;
-      observer.unobserve(element);
-      const duration = 1800;
+      const duration = 2000;
       const start = performance.now();
       const tick = (now) => {
         const t = Math.min(1, (now - start) / duration);
@@ -64,10 +65,22 @@ function useCountUp(value, elementRef) {
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
-    }, { threshold: 0.2 });
+    };
 
+    // Start on page load after a short delay (so the hero is visually rendered)
+    const mountTimer = setTimeout(runAnimation, 500);
+
+    // Also keep IntersectionObserver as fallback (e.g. if component mounts late)
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        runAnimation();
+        observer.unobserve(element);
+      }
+    }, { threshold: 0.1 });
     observer.observe(element);
+
     return () => {
+      clearTimeout(mountTimer);
       observer.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
@@ -75,6 +88,7 @@ function useCountUp(value, elementRef) {
 
   return display;
 }
+
 
 function CountStatCard({ value, label, onClick, title }) {
   const ref = useRef(null);
