@@ -50,6 +50,15 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false // Allow embedding of images/assets
 }));
 
+// ── Canonical Domain Redirect (Redirect *.vercel.app -> www.shamnathetherapist.in) ──
+app.use((req, res, next) => {
+  const host = req.headers['x-forwarded-host'] || req.headers.host || '';
+  if (host.includes('vercel.app')) {
+    return res.redirect(301, `https://www.shamnathetherapist.in${req.originalUrl}`);
+  }
+  next();
+});
+
 // ── CORS — only allow the real frontend origin ───────────────────
 const ALLOWED_ORIGINS = [
   'https://shamnathetherapist.in',

@@ -15,6 +15,19 @@
   ],
   "routes": [
     {
+      "src": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.vercel\\.app"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "https://www.shamnathetherapist.in/$1"
+      }
+    },
+    {
       "src": "/api/(.*)",
       "dest": "backend/server.js"
     },

@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- ─── Canonical Domain Enforcement (Redirect *.vercel.app -> www.shamnathetherapist.in) ─── -->
+    <script>
+      (function() {
+        var h = window.location.hostname;
+        if (h && h.indexOf('vercel.app') !== -1) {
+          window.location.replace('https://www.shamnathetherapist.in' + window.location.pathname + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
+
     <!-- ─── Primary SEO ──────────────────────────────────────── -->
     <title>Shamna | Psychologist & Therapist in Manjeri & Malappuram | Mind Therapy</title>
     <meta name="description" content="Shamna is a licensed psychologist & therapist in Manjeri, Malappuram (Kerala). Specialising in CBT, anxiety, depression, couple & child counselling, mind wellness, and mental health support. Consult online or in-person at www.shamnathetherapist.in." />
