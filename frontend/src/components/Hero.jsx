@@ -293,12 +293,12 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
             >
               {/* Secondary softer wave in background for layered depth */}
               <path 
-                d="M0,85 C240,115 520,70 820,45 C1080,24 1260,65 1440,55 L1440,140 L0,140 Z" 
+                d="M0,45 C240,65 520,35 820,20 C1080,8 1260,35 1440,28 L1440,140 L0,140 Z" 
                 fill="rgba(72, 45, 28, 0.45)" 
               />
               {/* Foreground rich chocolate wave matching screenshot */}
               <path 
-                d="M0,95 C280,125 580,85 860,50 C1100,26 1280,72 1440,65 L1440,140 L0,140 Z" 
+                d="M0,52 C280,72 580,42 860,24 C1100,10 1280,38 1440,32 L1440,140 L0,140 Z" 
                 fill="#3E2718" 
               />
             </svg>
