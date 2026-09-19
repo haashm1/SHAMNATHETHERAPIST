@@ -1,20 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { 
   ArrowRight, 
-  Calendar, 
-  CheckCircle2, 
   HeartHandshake, 
   Mail, 
   MapPin, 
   Phone, 
-  ShieldCheck, 
   Sparkles, 
   Users,
-  Award,
-  BookOpen,
-  Clock,
   Compass
 } from 'lucide-react';
+
 
 function parseStat(value = '') {
   const clean = String(value).replace(/,/g, '').trim();
@@ -383,37 +378,7 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
               <p className="editorial-about-bio">{profile.bio}</p>
             )}
 
-            <div className="editorial-about-meta-grid">
-              {profile.experience && (
-                <div className="editorial-meta-item scroll-reveal stagger-delay-1">
-                  <div className="meta-icon-wrapper">
-                    <ShieldCheck size={22} />
-                  </div>
-                  <div className="meta-text-wrapper">
-                    <span className="meta-label">Experience</span>
-                    <strong className="meta-val">{profile.experience}</strong>
-                  </div>
-                </div>
-              )}
-              {profile.education && (
-                <div className="editorial-meta-item scroll-reveal stagger-delay-2">
-                  <div className="meta-icon-wrapper">
-                    <CheckCircle2 size={22} />
-                  </div>
-                  <div className="meta-text-wrapper">
-                    <span className="meta-label">Education</span>
-                    <strong className="meta-val">{profile.education}</strong>
-                  </div>
-                </div>
-              )}
-            </div>
 
-            <div className="editorial-about-actions scroll-reveal stagger-delay-3">
-              <button onClick={onBookClick} className="editorial-btn-book-primary">
-                <Calendar size={18} />
-                <span>Schedule with {profile.name}</span>
-              </button>
-            </div>
           </div>
         </div>
       </section>
