@@ -263,11 +263,11 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
 
               {/* Location */}
               <a 
-                href={`https://maps.google.com/?q=${encodeURIComponent(profile.address || 'San Francisco, CA')}`}
+                href={`https://maps.google.com/?q=${encodeURIComponent(profile.address || 'Manjeri, Malappuram, Kerala, India')}`}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="editorial-contact-link"
-                title={`Clinic Location: ${profile.address || 'Oakwood Wellness Center'}`}
+                title={`Clinic Location: ${profile.address || 'Manjeri, Malappuram, Kerala'}`}
               >
                 <MapPin size={16} />
                 <span>Location</span>
@@ -497,6 +497,46 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
         </div>
       </section>
 
+      {/* LOCAL CARE & FAQ SECTION (SEO: Psychologist & Therapist Manjeri, Malappuram) */}
+      <section className="editorial-faq-section" id="faq">
+        <div className="container">
+          <div className="editorial-section-header scroll-reveal">
+            <p className="editorial-section-label">PSYCHOLOGICAL CARE &amp; MIND WELLNESS</p>
+            <h2 className="editorial-section-heading">Psychologist &amp; Therapist in Manjeri, Malappuram</h2>
+          </div>
+
+          <div className="editorial-faq-grid">
+            <div className="editorial-faq-card scroll-reveal">
+              <h3>Who is Shamna the Therapist in Manjeri?</h3>
+              <p>
+                Shamna is a professional psychologist and therapist based in Manjeri, Malappuram (Kerala). With extensive experience in Cognitive Behavioural Therapy (CBT), mental health counselling, and emotional wellness, Shamna helps clients overcome anxiety, depression, and personal challenges in a safe, confidential environment.
+              </p>
+            </div>
+
+            <div className="editorial-faq-card scroll-reveal">
+              <h3>Where is the therapy clinic located?</h3>
+              <p>
+                In-person psychological counselling sessions are conducted in <strong>Manjeri</strong>, accessible to clients across the Malappuram district. In addition, online video consultations are available for clients across Kerala and worldwide through <strong>www.shamnathetherapist.in</strong>.
+              </p>
+            </div>
+
+            <div className="editorial-faq-card scroll-reveal">
+              <h3>What mind &amp; mental wellness services are provided?</h3>
+              <p>
+                Services include individual psychotherapy, Cognitive Behavioural Therapy (CBT), stress &amp; burnout management, relationship and couple counselling, child &amp; adolescent guidance, and self-esteem building.
+              </p>
+            </div>
+
+            <div className="editorial-faq-card scroll-reveal">
+              <h3>How can I book an appointment with therapist Shamna?</h3>
+              <p>
+                Booking is quick and seamless. Click the <strong>&quot;Book a Consultation&quot;</strong> button anywhere on this website to view real-time availability, select your preferred date and time, and confirm your confidential session.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* RESOURCES & CONTACT PROMPT (Anchor #resources & #contact) */}
       <section className="editorial-contact-section" id="contact">
         <div className="container">
@@ -527,7 +567,7 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.45c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63c.9 0 1.63-.73 1.63-1.63s-.73-1.63-1.63-1.63z"/></svg>
                   <span>LinkedIn</span>
                 </a>
-                <a href={`https://maps.google.com/?q=${encodeURIComponent(profile.address || 'Oakwood Wellness Center')}`} target="_blank" rel="noopener noreferrer" className="contact-quick-btn">
+                <a href={`https://maps.google.com/?q=${encodeURIComponent(profile.address || 'Manjeri, Malappuram, Kerala, India')}`} target="_blank" rel="noopener noreferrer" className="contact-quick-btn">
                   <MapPin size={16} />
                   <span>Location</span>
                 </a>

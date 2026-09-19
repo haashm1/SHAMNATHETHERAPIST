@@ -2008,10 +2008,58 @@ button {
 
 .service-card p {
   color: #6B5B52;
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-size: 0.98rem;
+  line-height: 1.6;
   flex: 1;
   margin-bottom: 1.5rem;
+}
+
+/* Local Clinical Care & FAQ Section (SEO: Manjeri, Malappuram, Mind Therapy) */
+.editorial-faq-section {
+  padding: 6.5rem 0;
+  background-color: #FFFFFF;
+}
+
+.editorial-faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.75rem;
+}
+
+@media (max-width: 768px) {
+  .editorial-faq-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.editorial-faq-card {
+  background: #FAF6F0;
+  border: 1px solid rgba(200, 180, 160, 0.45);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.editorial-faq-card:hover {
+  border-color: #8B5E3C;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(62, 39, 24, 0.06);
+}
+
+.editorial-faq-card h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.22rem;
+  color: #3E2718;
+  margin-bottom: 0.75rem;
+  line-height: 1.35;
+}
+
+.editorial-faq-card p {
+  font-size: 0.95rem;
+  color: #5C4A3E;
+  line-height: 1.65;
+  margin: 0;
 }
 
 .service-book-btn {

@@ -52,6 +52,8 @@ app.use(helmet({
 
 // ── CORS — only allow the real frontend origin ───────────────────
 const ALLOWED_ORIGINS = [
+  'https://shamnathetherapist.in',
+  'https://www.shamnathetherapist.in',
   'https://shamnathetherapist.com',
   'https://www.shamnathetherapist.com',
   'http://localhost:5173',

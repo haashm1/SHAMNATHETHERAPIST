@@ -346,14 +346,17 @@ export default function App() {
         )}
       </main>
 
-      <footer style={{ background: 'var(--text-primary)', color: 'var(--bg-secondary)', padding: '2rem 0', borderTop: '1px solid var(--border-color)', marginTop: '4rem' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      <footer style={{ background: 'var(--text-primary)', color: 'var(--bg-secondary)', padding: '2.5rem 0 2rem', borderTop: '1px solid var(--border-color)', marginTop: '4rem' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
           <div>
             <div className="logo" style={{ color: 'white' }}>
               <span>Shamna</span> <span style={{ color: 'white' }}>The Therapist</span>
             </div>
-            <p style={{ fontSize: '0.8rem', color: '#8E7E74', marginTop: '0.25rem' }}>
-              Empowering mental wellbeing and emotional resilience.
+            <p style={{ fontSize: '0.85rem', color: '#D4B895', marginTop: '0.35rem', fontWeight: 500 }}>
+              Clinical Psychologist &amp; Therapist &middot; Manjeri, Malappuram, Kerala
+            </p>
+            <p style={{ fontSize: '0.8rem', color: '#8E7E74', marginTop: '0.25rem', maxWidth: '420px', lineHeight: '1.5' }}>
+              Specialised in CBT, mind wellness, anxiety, depression, and relationship counselling. In-person clinic in Manjeri &amp; online therapy across Kerala. Visit <strong style={{ color: '#EBDCCE' }}>www.shamnathetherapist.in</strong>.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
@@ -366,7 +369,7 @@ export default function App() {
               </button>
             )}
             <div style={{ fontSize: '0.8rem', color: '#8E7E74' }}>
-              &copy; {new Date().getFullYear()} Shamna Clinic. Clinical records secure & encrypted.
+              &copy; {new Date().getFullYear()} Shamna Clinic &middot; Manjeri, Malappuram. All rights reserved.
             </div>
           </div>
         </div>

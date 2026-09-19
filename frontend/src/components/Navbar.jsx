@@ -29,6 +29,7 @@ export default function Navbar({ currentView, onViewChange, psychologistName, on
     { id: 'specialisations',  key: 'specialisations',  label: 'Specialisations' },
     { id: 'approach',         key: 'approach',         label: 'Approach' },
     { id: 'services',         key: 'services',         label: 'Services' },
+    { id: 'faq',              key: 'faq',              label: 'FAQ' },
     { id: 'contact',          key: 'contact',          label: 'Contact' },
   ];
 
