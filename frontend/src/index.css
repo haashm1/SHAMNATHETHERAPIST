@@ -1373,6 +1373,39 @@ button {
 }
 
 
+/* =========================================================
+   SCROLL REVEAL ANIMATIONS (Appearing / Disappearing on Scroll)
+   ========================================================= */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-reveal-scale {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal-scale.in-view {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delay classes */
+.stagger-delay-1 { transition-delay: 0.08s; }
+.stagger-delay-2 { transition-delay: 0.16s; }
+.stagger-delay-3 { transition-delay: 0.24s; }
+.stagger-delay-4 { transition-delay: 0.32s; }
+
 .editorial-page-wrapper {
   background-color: #FAF5EF;
   width: 100%;
@@ -1739,118 +1772,192 @@ button {
   color: #6B5B52;
 }
 
-/* About Section */
+/* =========================================================
+   ABOUT SECTION (Integrated, Unboxed, Editorial Typography)
+   ========================================================= */
 .editorial-about-section {
-  padding: 6.5rem 0;
-  background-color: #FAF6F0;
-  border-bottom: 1px solid rgba(220, 205, 190, 0.4);
+  padding: 6.5rem 0 5.5rem 0;
+  background-color: #FAF5EF;
+  border-bottom: 1px solid rgba(220, 205, 190, 0.45);
+  position: relative;
+  scroll-margin-top: 80px;
 }
 
-.editorial-about-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(220, 205, 190, 0.6);
-  border-radius: 20px;
-  padding: 3rem;
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 3rem;
-  align-items: center;
-  box-shadow: 0 16px 40px rgba(74, 48, 34, 0.06);
+.editorial-about-container {
+  max-width: 860px;
+  margin: 0 auto;
+  text-align: left;
 }
 
-.about-card-left h2 {
-  font-size: clamp(2rem, 3vw, 2.8rem);
-  margin-bottom: 0.35rem;
+.editorial-about-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.4rem, 4.2vw, 3.6rem);
   color: #2E1E14;
+  margin-bottom: 0.35rem;
+  line-height: 1.15;
 }
 
-.about-title {
+.editorial-about-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
   color: #8B5E3C;
   font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 1.75rem;
 }
 
-.about-bio {
-  font-size: 1rem;
-  line-height: 1.8;
-  color: #524036;
-  margin-bottom: 2rem;
+.editorial-about-bio {
+  font-size: 1.15rem;
+  line-height: 1.95;
+  color: #4A3A31;
+  margin-bottom: 2.5rem;
+  font-weight: 400;
 }
 
-.about-meta-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding: 1.25rem 0;
-  border-top: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.about-meta-grid .meta-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.about-meta-grid .meta-item svg {
-  color: #8B5E3C;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.about-meta-grid .meta-item strong {
-  display: block;
-  font-size: 0.85rem;
-  color: #2E1E14;
-}
-
-.about-meta-grid .meta-item p {
-  font-size: 0.82rem;
-  color: #6B5B52;
-  margin-top: 2px;
-}
-
-.about-specialties strong {
-  display: block;
-  font-size: 0.85rem;
-  margin-bottom: 0.65rem;
-  color: #2E1E14;
-}
-
-.specialty-pills {
+.editorial-about-meta-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 2rem;
+  padding: 1.75rem 0;
+  border-top: 1px solid rgba(195, 165, 135, 0.35);
+  border-bottom: 1px solid rgba(195, 165, 135, 0.35);
+  margin-bottom: 2.25rem;
 }
 
-.specialty-pill {
-  background: #FAF5EF;
-  border: 1px solid rgba(195, 165, 135, 0.4);
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #4A3022;
-}
-
-.about-card-right .about-image-frame {
-  width: 100%;
-  height: 380px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: linear-gradient(145deg, #E9DDD1, #CDB09A);
+.editorial-meta-item {
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  align-items: center;
+  gap: 1.15rem;
+  flex: 1;
+  min-width: 240px;
 }
 
-.about-card-right .about-image {
-  height: 95%;
-  max-width: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 20px rgba(46, 30, 20, 0.16));
+.meta-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(139, 94, 60, 0.1);
+  color: #8B5E3C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.meta-text-wrapper .meta-label {
+  display: block;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #8E7E74;
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+}
+
+.meta-text-wrapper .meta-val {
+  font-size: 1.08rem;
+  color: #2E1E14;
+  font-weight: 600;
+}
+
+.editorial-about-actions {
+  margin-top: 1rem;
+}
+
+/* =========================================================
+   SPECIALISATIONS MARQUEE TICKER (Moving in One Direction with Hover Highlight)
+   ========================================================= */
+.editorial-specialisations-section {
+  padding: 5.5rem 0 6rem 0;
+  background-color: #F5EDE2;
+  overflow: hidden;
+  position: relative;
+  border-bottom: 1px solid rgba(220, 205, 190, 0.45);
+  scroll-margin-top: 80px;
+}
+
+.marquee-outer-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-top: 2.5rem;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  padding: 1rem 0;
+}
+
+.marquee-track-container {
+  display: flex;
+  width: max-content;
+  cursor: pointer;
+}
+
+.marquee-track-container:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
+  animation: marquee-scroll 45s linear infinite;
+  will-change: transform;
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.85rem 1.85rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(195, 165, 135, 0.45);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.marquee-item-text {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  color: #3E2B20;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: color 0.3s ease;
+}
+
+.marquee-item-bullet {
+  color: #C3A587;
+  font-size: 0.85rem;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Hover highlight effect on marquee item */
+.marquee-item:hover {
+  background: #2E1E14;
+  border-color: #2E1E14;
+  transform: scale(1.06) translateY(-2px);
+  box-shadow: 0 10px 25px rgba(46, 30, 20, 0.2);
+}
+
+.marquee-item:hover .marquee-item-text {
+  color: #FAF5EF;
+}
+
+.marquee-item:hover .marquee-item-bullet {
+  color: #E2B98E;
+  transform: rotate(45deg);
 }
 
 /* Services Section */
@@ -2046,7 +2153,6 @@ button {
     display: flex;
   }
 
-  .editorial-about-card,
   .contact-editorial-box {
     grid-template-columns: 1fr;
     padding: 2.5rem;
@@ -2096,6 +2202,11 @@ button {
   .editorial-portrait-cutout {
     height: 390px;
   }
+
+  .editorial-about-meta-grid {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -2122,8 +2233,9 @@ button {
     gap: 0.6rem 0.8rem;
   }
 
-  .about-meta-grid {
-    grid-template-columns: 1fr;
+  .editorial-about-meta-grid {
+    flex-direction: column;
+    gap: 1.25rem;
   }
 
   /* Scale down hero visual frame on phones */
@@ -2165,20 +2277,20 @@ button {
     letter-spacing: 0.12em;
   }
 
-  /* Contact & about box: reduce padding */
+  /* Contact box: reduce padding */
   .contact-editorial-box {
     padding: 2rem 1.25rem;
     border-radius: 16px;
   }
 
-  .editorial-about-card {
-    padding: 1.75rem 1.25rem;
-    border-radius: 14px;
+  .editorial-about-container {
+    padding: 0 0.5rem;
   }
 
   /* Approach & services sections */
   .editorial-approach-section,
   .editorial-about-section,
+  .editorial-specialisations-section,
   .editorial-services-section {
     padding: 3.5rem 0;
   }
@@ -2189,6 +2301,15 @@ button {
 
   .consultation-card {
     padding: 1.75rem 1.25rem;
+  }
+
+  .marquee-item {
+    padding: 0.65rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .marquee-item-text {
+    font-size: 1.05rem;
   }
 }
 

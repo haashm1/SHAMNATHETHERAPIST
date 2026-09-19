@@ -67,10 +67,9 @@ function useCountUp(value, elementRef) {
       raf = requestAnimationFrame(tick);
     };
 
-    // Start on page load after a short delay (so the hero is visually rendered)
+    // Start on page load after a short delay
     const mountTimer = setTimeout(runAnimation, 500);
 
-    // Also keep IntersectionObserver as fallback (e.g. if component mounts late)
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         runAnimation();
@@ -89,7 +88,6 @@ function useCountUp(value, elementRef) {
   return display;
 }
 
-
 function CountStatCard({ value, label, onClick, title }) {
   const ref = useRef(null);
   const display = useCountUp(value, ref);
@@ -97,7 +95,7 @@ function CountStatCard({ value, label, onClick, title }) {
   return (
     <div 
       ref={ref} 
-      className="editorial-stat-card"
+      className="editorial-stat-card scroll-reveal"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -118,6 +116,31 @@ function CountStatCard({ value, label, onClick, title }) {
 export default function Hero({ profile, onBookClick, onAdminClick }) {
   const heroRef = useRef(null);
 
+  // Scroll reveal animation observer (disappearing to appearing on scroll)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+          } else {
+            // allows elements to re-animate smoothly when scrolling back
+            entry.target.classList.remove('in-view');
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px'
+      }
+    );
+
+    const elements = document.querySelectorAll('.scroll-reveal, .scroll-reveal-scale');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [profile]);
+
   if (!profile) return null;
 
   // Clean WhatsApp number
@@ -135,9 +158,22 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
   const casesResolved = profile.cases_resolved || '8,000+';
   const clientSatisfaction = profile.client_satisfaction || '100%';
 
+  const defaultSpecialties = [
+    'Behavioral Concerns',
+    'Couple and Relationship Counselling',
+    'Marital and Premarital Counselling',
+    'Child Psychology',
+    'Self-Esteem and Confidence Building',
+    'Grief and Loss Counselling',
+    'Academic Stress and Career Concerns',
+    'Psychoeducation and Mental Wellness Promotion',
+    'Cognitive Behavioral Therapy (CBT)',
+    'Personal Growth and Resilience Building'
+  ];
+
   const specialties = profile.specialties 
     ? profile.specialties.split(',').map(s => s.trim()).filter(Boolean)
-    : ['Anxiety', 'Depression', 'Relationship Counseling', 'CBT', 'Mindfulness'];
+    : defaultSpecialties;
 
   const scrollTo = (id) => {
     const el = document.getElementById(id);
@@ -153,14 +189,10 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
         <div className="container editorial-hero-container">
           
           {/* LEFT COLUMN: Editorial Typography & Actions */}
-          <div className="editorial-hero-left">
+          <div className="editorial-hero-left scroll-reveal">
             <h1 className="editorial-hero-title">
               {profile.name || 'Shamna'}
             </h1>
-
-            <p className="editorial-hero-description">
-              Thoughtful, client-centred counselling for the moments when you need space, clarity, and support to move forward.
-            </p>
 
             {/* CTAs */}
             <div className="editorial-actions-row">
@@ -260,7 +292,7 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
           </div>
 
           {/* RIGHT COLUMN: Backdrop Aura, Rings & Cutout Portrait */}
-          <div className="editorial-hero-right">
+          <div className="editorial-hero-right scroll-reveal-scale">
             <div className="editorial-visual-frame">
               {/* Concentric Golden/Warm Arc Rings */}
               <div className="editorial-halo-ring ring-outer" />
@@ -296,7 +328,7 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
                 d="M0,45 C240,65 520,35 820,20 C1080,8 1260,35 1440,28 L1440,140 L0,140 Z" 
                 fill="rgba(72, 45, 28, 0.45)" 
               />
-              {/* Foreground rich chocolate wave matching screenshot */}
+              {/* Foreground rich chocolate wave */}
               <path 
                 d="M0,52 C280,72 580,42 860,24 C1100,10 1280,38 1440,32 L1440,140 L0,140 Z" 
                 fill="#3E2718" 
@@ -339,10 +371,104 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
         </div>
       </section>
 
+      {/* ABOUT SECTION (Anchor #about - Integrated, Unboxed, Name & Details only) */}
+      <section className="editorial-about-section" id="about">
+        <div className="container">
+          <div className="editorial-about-container scroll-reveal">
+            <p className="editorial-section-label">ABOUT YOUR THERAPIST</p>
+            <h2 className="editorial-about-name">{profile.name}</h2>
+            <p className="editorial-about-title">{profile.title || 'Psychologist'}</p>
+            
+            {profile.bio && (
+              <p className="editorial-about-bio">{profile.bio}</p>
+            )}
+
+            <div className="editorial-about-meta-grid">
+              {profile.experience && (
+                <div className="editorial-meta-item scroll-reveal stagger-delay-1">
+                  <div className="meta-icon-wrapper">
+                    <ShieldCheck size={22} />
+                  </div>
+                  <div className="meta-text-wrapper">
+                    <span className="meta-label">Experience</span>
+                    <strong className="meta-val">{profile.experience}</strong>
+                  </div>
+                </div>
+              )}
+              {profile.education && (
+                <div className="editorial-meta-item scroll-reveal stagger-delay-2">
+                  <div className="meta-icon-wrapper">
+                    <CheckCircle2 size={22} />
+                  </div>
+                  <div className="meta-text-wrapper">
+                    <span className="meta-label">Education</span>
+                    <strong className="meta-val">{profile.education}</strong>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="editorial-about-actions scroll-reveal stagger-delay-3">
+              <button onClick={onBookClick} className="editorial-btn-book-primary">
+                <Calendar size={18} />
+                <span>Schedule with {profile.name}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SPECIALISATIONS TICKER SECTION (Anchor #specialisations - Moving Text with Hover Highlight) */}
+      <section className="editorial-specialisations-section" id="specialisations">
+        <div className="container">
+          <div className="editorial-section-header scroll-reveal">
+            <p className="editorial-section-label">AREAS OF EXPERTISE</p>
+            <h2 className="editorial-section-heading">Specialisations</h2>
+          </div>
+        </div>
+
+        <div className="marquee-outer-container scroll-reveal">
+          <div className="marquee-track-container" aria-label="Moving list of clinical specialisations">
+            {/* First track */}
+            <div className="marquee-track">
+              {[...specialties, ...specialties].map((spec, idx) => (
+                <div 
+                  key={`track1-${idx}`} 
+                  className="marquee-item"
+                  role="button"
+                  tabIndex={0}
+                  onClick={onBookClick}
+                  title={`Specialisation: ${spec} - Click to book consultation`}
+                >
+                  <span className="marquee-item-text">{spec}</span>
+                  <span className="marquee-item-bullet" aria-hidden="true">&#x2726;</span>
+                </div>
+              ))}
+            </div>
+            {/* Second clone track for flawless seamless loop */}
+            <div className="marquee-track" aria-hidden="true">
+              {[...specialties, ...specialties].map((spec, idx) => (
+                <div 
+                  key={`track2-${idx}`} 
+                  className="marquee-item"
+                  role="button"
+                  tabIndex={0}
+                  onClick={onBookClick}
+                  title={`Specialisation: ${spec} - Click to book consultation`}
+                >
+                  <span className="marquee-item-text">{spec}</span>
+                  <span className="marquee-item-bullet" aria-hidden="true">&#x2726;</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* APPROACH SECTION (Anchor #approach) */}
       <section className="editorial-approach-section" id="approach">
         <div className="container">
-          <div className="editorial-section-header">
+          <div className="editorial-section-header scroll-reveal">
             <p className="editorial-section-label">HOW WE CAN WORK TOGETHER</p>
             <h2 className="editorial-section-heading">Care that meets you where you are.</h2>
           </div>
@@ -364,8 +490,11 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
                 title: 'Move forward',
                 desc: 'Build a steadier, compassionate relationship with yourself, progressing at a pace that feels genuinely right.'
               }
-            ].map((step) => (
-              <div key={step.num} className="editorial-approach-card">
+            ].map((step, idx) => (
+              <div 
+                key={step.num} 
+                className={`editorial-approach-card scroll-reveal stagger-delay-${idx + 1}`}
+              >
                 <span className="card-num">{step.num}</span>
                 <h3>{step.title}</h3>
                 <p>{step.desc}</p>
@@ -375,69 +504,10 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
         </div>
       </section>
 
-      {/* ABOUT SECTION (Anchor #about) */}
-      <section className="editorial-about-section" id="about">
-        <div className="container">
-          <div className="editorial-about-card">
-            <div className="about-card-left">
-              <p className="editorial-section-label">ABOUT YOUR THERAPIST</p>
-              <h2>{profile.name}</h2>
-              <p className="about-title">{profile.title}</p>
-              <p className="about-bio">{profile.bio}</p>
-
-              <div className="about-meta-grid">
-                {profile.experience && (
-                  <div className="meta-item">
-                    <ShieldCheck size={18} />
-                    <div>
-                      <strong>Experience</strong>
-                      <p>{profile.experience}</p>
-                    </div>
-                  </div>
-                )}
-                {profile.education && (
-                  <div className="meta-item">
-                    <CheckCircle2 size={18} />
-                    <div>
-                      <strong>Education</strong>
-                      <p>{profile.education}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {specialties.length > 0 && (
-                <div className="about-specialties">
-                  <strong>Specialisations:</strong>
-                  <div className="specialty-pills">
-                    {specialties.map(spec => (
-                      <span key={spec} className="specialty-pill">{spec}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="about-card-right">
-              <div className="about-image-frame">
-                <img 
-                  src={profile.photo_url || '/therapist-hero-cutout.png'} 
-                  alt={`Therapist ${profile.name}`} 
-                  className="about-image"
-                />
-              </div>
-              <button onClick={onBookClick} className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
-                <Calendar size={16} /> Schedule with {profile.name}
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* SERVICES SECTION (Anchor #services) */}
       <section className="editorial-services-section" id="services">
         <div className="container">
-          <div className="editorial-section-header">
+          <div className="editorial-section-header scroll-reveal">
             <p className="editorial-section-label">SERVICES & SPECIALISATIONS</p>
             <h2 className="editorial-section-heading">Thoughtful care tailored to your journey.</h2>
           </div>
@@ -465,7 +535,10 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
                 desc: 'Somatic grounding tools, nervous system regulation, and mindfulness-based stress reduction.'
               }
             ].map((service, idx) => (
-              <div key={idx} className="service-card">
+              <div 
+                key={idx} 
+                className={`service-card scroll-reveal stagger-delay-${idx + 1}`}
+              >
                 <div className="service-icon">{service.icon}</div>
                 <h3>{service.title}</h3>
                 <p>{service.desc}</p>
@@ -481,7 +554,7 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
       {/* RESOURCES & CONTACT PROMPT (Anchor #resources & #contact) */}
       <section className="editorial-contact-section" id="contact">
         <div className="container">
-          <div className="contact-editorial-box" id="resources">
+          <div className="contact-editorial-box scroll-reveal" id="resources">
             <div className="contact-editorial-copy">
               <p className="editorial-section-label">GET IN TOUCH</p>
               <h2>Take the first step at your own pace.</h2>
@@ -506,7 +579,7 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
               </div>
             </div>
 
-            <div className="contact-editorial-action">
+            <div className="contact-editorial-action scroll-reveal-scale">
               <div className="consultation-card">
                 <h3>Ready to begin?</h3>
                 <p>Reserve an available online or in-person therapy session.</p>

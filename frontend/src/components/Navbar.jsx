@@ -6,11 +6,12 @@ export default function Navbar({ currentView, onViewChange, psychologistName, on
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
-    { id: 'top',      key: 'home',     label: 'Home' },
-    { id: 'about',    key: 'about',    label: 'About' },
-    { id: 'approach', key: 'approach', label: 'Approach' },
-    { id: 'services', key: 'services', label: 'Services' },
-    { id: 'contact',  key: 'contact',  label: 'Contact' },
+    { id: 'top',              key: 'home',             label: 'Home' },
+    { id: 'about',            key: 'about',            label: 'About' },
+    { id: 'specialisations',  key: 'specialisations',  label: 'Specialisations' },
+    { id: 'approach',         key: 'approach',         label: 'Approach' },
+    { id: 'services',         key: 'services',         label: 'Services' },
+    { id: 'contact',          key: 'contact',          label: 'Contact' },
   ];
 
   const scrollToSection = (id, linkName) => {
