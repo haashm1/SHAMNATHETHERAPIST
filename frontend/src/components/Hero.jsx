@@ -199,18 +199,6 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
                 <Calendar size={18} />
                 <span>Book a Consultation</span>
               </button>
-
-              <a 
-                href="#approach" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollTo('approach');
-                }}
-                className="editorial-link-approach"
-              >
-                <span>Explore My Approach</span>
-                <ArrowRight size={17} />
-              </a>
             </div>
 
             {/* CONTACT ROW: Email | Call | WhatsApp | LinkedIn | Location */}
