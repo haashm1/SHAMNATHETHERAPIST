@@ -341,15 +341,7 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
                 title="Click to explore my therapeutic approach"
               />
 
-              <div className="editorial-stat-separator" aria-hidden="true" />
 
-              {/* Stat 3: Recovery rate */}
-              <CountStatCard 
-                value={clientSatisfaction}
-                label="CLIENT RECOVERY RATE"
-                onClick={() => scrollTo('about')}
-                title="Click to view therapist credentials & client outcomes"
-              />
             </div>
           </div>
         </div>

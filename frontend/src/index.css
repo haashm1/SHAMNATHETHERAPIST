@@ -2361,3 +2361,60 @@ button {
     transform: none !important;
   }
 }
+
+/* ── Sticky Mobile Book Bar ───────────────────────────── */
+.mobile-sticky-book-bar {
+  display: none; /* Hidden on desktop */
+}
+
+@media (max-width: 768px) {
+  .mobile-sticky-book-bar {
+    display: flex;
+    position: fixed;
+    top: 64px; /* Just below the navbar */
+    left: 0;
+    right: 0;
+    z-index: 998;
+    padding: 0.55rem 1rem;
+    background: rgba(30, 16, 8, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    transform: translateY(-110%);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .mobile-sticky-book-bar--visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-sticky-book-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    justify-content: center;
+    background: linear-gradient(135deg, #7c4a1e 0%, #5a3010 100%);
+    color: #f5ede3;
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+  }
+
+  .mobile-sticky-book-btn:hover,
+  .mobile-sticky-book-btn:active {
+    background: linear-gradient(135deg, #9a5c26 0%, #6e3c14 100%);
+    transform: scale(0.98);
+  }
+}
+

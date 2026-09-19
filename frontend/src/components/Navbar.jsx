@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, LayoutDashboard, Menu, X } from 'lucide-react';
 
 export default function Navbar({ currentView, onViewChange, psychologistName, onBookClick, profile }) {
   const [activeLink, setActiveLink] = useState('home');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showMobileBook, setShowMobileBook] = useState(false);
+
+  // Show sticky book button on mobile after scrolling past hero
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerWidth <= 768) {
+        setShowMobileBook(window.scrollY > 200);
+      } else {
+        setShowMobileBook(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
 
   const navLinks = [
     { id: 'top',              key: 'home',             label: 'Home' },
@@ -110,6 +128,16 @@ export default function Navbar({ currentView, onViewChange, psychologistName, on
             className="nav-mobile-book-btn"
           >
             <Calendar size={16} /> Book a Consultation
+          </button>
+        </div>
+      )}
+
+      {/* Sticky mobile book bar — appears after scrolling past hero */}
+      {currentView === 'client' && (
+        <div className={`mobile-sticky-book-bar ${showMobileBook ? 'mobile-sticky-book-bar--visible' : ''}`}>
+          <button onClick={onBookClick} className="mobile-sticky-book-btn">
+            <Calendar size={16} />
+            <span>Book a Consultation</span>
           </button>
         </div>
       )}
