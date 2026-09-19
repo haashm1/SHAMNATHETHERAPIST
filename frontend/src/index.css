@@ -2138,7 +2138,7 @@ button {
   }
 
   .editorial-contact-strip {
-    justify-content: center;
+    display: none;
   }
 
   .editorial-nav-links {
@@ -2230,7 +2230,7 @@ button {
   }
 
   .editorial-contact-strip {
-    gap: 0.6rem 0.8rem;
+    display: none;
   }
 
   .editorial-about-meta-grid {
