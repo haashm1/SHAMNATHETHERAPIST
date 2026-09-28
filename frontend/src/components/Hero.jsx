@@ -502,35 +502,35 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
         <div className="container">
           <div className="editorial-section-header scroll-reveal">
             <p className="editorial-section-label">PSYCHOLOGICAL CARE &amp; MIND WELLNESS</p>
-            <h2 className="editorial-section-heading">Psychologist &amp; Therapist in Manjeri, Malappuram</h2>
+            <h2 className="editorial-section-heading">Consultant Psychologist &amp; Therapist in Manjeri, Malappuram</h2>
           </div>
 
           <div className="editorial-faq-grid">
             <div className="editorial-faq-card scroll-reveal">
-              <h3>Who is Shamna the Therapist in Manjeri?</h3>
+              <h3>Who is Consultant Psychologist Shamna in Manjeri?</h3>
               <p>
-                Shamna is a professional psychologist and therapist based in Manjeri, Malappuram (Kerala). With extensive experience in Cognitive Behavioural Therapy (CBT), mental health counselling, and emotional wellness, Shamna helps clients overcome anxiety, depression, and personal challenges in a safe, confidential environment.
+                Shamna is a certified consultant psychologist and therapist based in Manjeri, Malappuram (Kerala). Specialising in Cognitive Behavioural Therapy (CBT), emotional wellness, anxiety, depression, and relationship dynamics, she provides confidential care in both <strong>Malayalam and English</strong>.
               </p>
             </div>
 
             <div className="editorial-faq-card scroll-reveal">
-              <h3>Where is the therapy clinic located?</h3>
+              <h3>Where is the clinic located &amp; is online therapy available?</h3>
               <p>
-                In-person psychological counselling sessions are conducted in <strong>Manjeri</strong>, accessible to clients across the Malappuram district. In addition, online video consultations are available for clients across Kerala and worldwide through <strong>www.shamnathetherapist.in</strong>.
+                In-person psychological counselling is held at the clinic in <strong>Manjeri</strong>, conveniently accessible from Malappuram, Perinthalmanna, Kottakkal, and Kozhikode. In addition, secure <strong>online video sessions</strong> are offered across Kerala, India, and worldwide via <strong>www.shamnathetherapist.in</strong>.
               </p>
             </div>
 
             <div className="editorial-faq-card scroll-reveal">
-              <h3>What mind &amp; mental wellness services are provided?</h3>
+              <h3>Are counselling sessions available in Malayalam?</h3>
               <p>
-                Services include individual psychotherapy, Cognitive Behavioural Therapy (CBT), stress &amp; burnout management, relationship and couple counselling, child &amp; adolescent guidance, and self-esteem building.
+                Yes. Therapy and psychological assessments are offered fluently in <strong>Malayalam and English</strong>, enabling clients to comfortably communicate and explore emotional healing in their native language.
               </p>
             </div>
 
             <div className="editorial-faq-card scroll-reveal">
               <h3>How can I book an appointment with therapist Shamna?</h3>
               <p>
-                Booking is quick and seamless. Click the <strong>&quot;Book a Consultation&quot;</strong> button anywhere on this website to view real-time availability, select your preferred date and time, and confirm your confidential session.
+                Booking is instant. Click <strong>&quot;Book a Consultation&quot;</strong> on this website to view real-time available slots, choose between in-person clinic or online video consultation, and receive your appointment confirmation immediately.
               </p>
             </div>
           </div>
