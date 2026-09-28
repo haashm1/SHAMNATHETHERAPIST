@@ -8,7 +8,7 @@ function getInMemoryDefaults() {
     {
       id: 1,
       name: 'Shamna',
-      title: 'Licensed Clinical Psychologist & Cognitive Behavioral Therapist',
+      title: 'Licensed Consultant Psychologist & Cognitive Behavioral Therapist',
       bio: 'With over 12 years of experience, Shamna specializes in helping clients navigate anxiety, stress, depression, and relationship dynamics using a compassionate, evidence-based approach.',
       specialties: 'Anxiety,Depression,Relationship Counseling,CBT,Mindfulness-Based Therapy',
       education: 'Ph.D. in Clinical Psychology - Stanford University',
