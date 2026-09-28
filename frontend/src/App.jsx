@@ -405,7 +405,7 @@ export default function App() {
               <span>Shamna</span> <span style={{ color: 'white' }}>The Therapist</span>
             </div>
             <p style={{ fontSize: '0.85rem', color: '#D4B895', marginTop: '0.35rem', fontWeight: 500 }}>
-              Clinical Psychologist &amp; Therapist &middot; Manjeri, Malappuram, Kerala
+              Consultant Psychologist &amp; Therapist &middot; Manjeri, Malappuram, Kerala
             </p>
             <p style={{ fontSize: '0.8rem', color: '#8E7E74', marginTop: '0.25rem', maxWidth: '420px', lineHeight: '1.5' }}>
               Specialised in CBT, mind wellness, anxiety, depression, and relationship counselling. In-person clinic in Manjeri &amp; online therapy across Kerala. Visit <strong style={{ color: '#EBDCCE' }}>www.shamnathetherapist.in</strong>.

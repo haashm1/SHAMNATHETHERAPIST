@@ -158,7 +158,7 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
       heading = 'Google Meet Access Link';
       introText = `Dear ${booking.client_name},<br><br>The Google Meet access link for your consultation session with ${therapist.name} has been assigned.`;
       detailsRows = `
-        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Clinical Psychologist'})</td></tr>
+        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Consultant Psychologist'})</td></tr>
         <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
         <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
         <tr><td class="label">Duration</td><td class="val">50 minutes</td></tr>
@@ -179,7 +179,7 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
       heading = 'Appointment Registered';
       introText = `Dear ${booking.client_name},<br><br>Your consultation session with ${therapist.name} has been successfully registered. We look forward to welcoming you.`;
       detailsRows = `
-        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Clinical Psychologist'})</td></tr>
+        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Consultant Psychologist'})</td></tr>
         <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
         <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
         <tr><td class="label">Duration</td><td class="val">50 minutes</td></tr>
@@ -205,7 +205,7 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
       heading = 'Session Rescheduled';
       introText = `Dear ${booking.client_name},<br><br>Your consultation session with ${therapist.name} has been rescheduled.`;
       detailsRows = `
-        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Clinical Psychologist'})</td></tr>
+        <tr><td class="label">Therapist</td><td class="val">${therapist.name} (${therapist.title || 'Consultant Psychologist'})</td></tr>
         <tr><td class="label">Date</td><td class="val">${formattedDate}</td></tr>
         <tr><td class="label">Time</td><td class="val">${booking.booking_time}</td></tr>
         <tr><td class="label">Duration</td><td class="val">50 minutes</td></tr>
@@ -445,6 +445,54 @@ function buildHtmlEmail(booking, therapist, isInitial, isMeetLinkOnly, isClient,
 }
 
 /**
+ * Send WhatsApp Message via Meta Cloud API
+ */
+async function sendWhatsAppMessage(toPhone, messageText) {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!token || !phoneId) {
+    console.log('[WhatsApp] Skipping sending message because WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID is not set in .env');
+    return false;
+  }
+
+  // Format phone number: remove all non-digits, ensure it has country code
+  const formattedPhone = toPhone.replace(/\D/g, '');
+
+  try {
+    const response = await fetch(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: formattedPhone,
+        type: 'text',
+        text: {
+          preview_url: false,
+          body: messageText
+        }
+      })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      console.log(`[WhatsApp] Message successfully sent to ${formattedPhone}`);
+      return true;
+    } else {
+      console.error(`[WhatsApp API Error] Failed to send to ${formattedPhone}:`, data);
+      return false;
+    }
+  } catch (error) {
+    console.error(`[WhatsApp Request Error] Could not send to ${formattedPhone}:`, error);
+    return false;
+  }
+}
+
+/**
  * Dispatch booking notifications to therapist and client
  */
 export async function sendBookingNotifications(booking, isInitial = false, isMeetLinkOnly = false) {
@@ -495,7 +543,7 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
         text: `Dear ${booking.client_name},\n\n` +
               `The Google Meet access link for your consultation session with ${therapist.name} has been assigned.\n\n` +
               `Session Details:\n` +
-              `- Therapist: ${therapist.name} (${therapist.title || 'Clinical Psychologist'})\n` +
+              `- Therapist: ${therapist.name} (${therapist.title || 'Consultant Psychologist'})\n` +
               `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
               `- Time: ${booking.booking_time} (50 minutes)\n` +
               `- Google Meet Link: ${meetLink}\n\n` +
@@ -539,7 +587,7 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
         text: `Dear ${booking.client_name},\n\n` +
               `Your consultation session with ${therapist.name} has been successfully registered.\n\n` +
               `Appointment Details:\n` +
-              `- Therapist: ${therapist.name} (${therapist.title || 'Clinical Psychologist'})\n` +
+              `- Therapist: ${therapist.name} (${therapist.title || 'Consultant Psychologist'})\n` +
               `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
               `- Time: ${booking.booking_time}\n` +
               `- Duration: 50 minutes\n` +
@@ -583,7 +631,7 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
         text: `Dear ${booking.client_name},\n\n` +
               `Your consultation session with ${therapist.name} has been rescheduled.\n\n` +
               `Updated Appointment Details:\n` +
-              `- Therapist: ${therapist.name} (${therapist.title || 'Clinical Psychologist'})\n` +
+              `- Therapist: ${therapist.name} (${therapist.title || 'Consultant Psychologist'})\n` +
               `- Date: ${formatDateToDMY(booking.booking_date)}\n` +
               `- Time: ${booking.booking_time}\n` +
               `- Duration: 50 minutes\n` +
@@ -598,22 +646,29 @@ export async function sendBookingNotifications(booking, isInitial = false, isMee
     }
 
     try {
-      // Send both emails using Nodemailer in parallel with allSettled
-      const emailOutcomes = await Promise.allSettled([
-        transporter.sendMail(therapistMailOptions),
+      // Prepare notification tasks
+      const notificationTasks = [
+        transporter.sendMail(therapistMailOptions)
+          .then(() => console.log('[Notification] Therapist email successfully sent.'))
+          .catch(err => console.error('[Notification Error] Failed to send therapist email:', err)),
+        
         transporter.sendMail(clientMailOptions)
-      ]);
-      
-      emailOutcomes.forEach((outcome, idx) => {
-        const type = idx === 0 ? "therapist" : "client";
-        if (outcome.status === "fulfilled") {
-          console.log(`[Notification] ${type} email successfully sent.`);
-        } else {
-          console.error(`[Notification Error] Failed to send ${type} email:`, outcome.reason);
+          .then(() => console.log('[Notification] Client email successfully sent.'))
+          .catch(err => console.error('[Notification Error] Failed to send client email:', err))
+      ];
+
+      // Add WhatsApp notifications
+      if (process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID) {
+        notificationTasks.push(sendWhatsAppMessage(therapist.contact_phone, therapistMailOptions.text));
+        if (booking.client_phone) {
+          notificationTasks.push(sendWhatsAppMessage(booking.client_phone, clientMailOptions.text));
         }
-      });
-    } catch (mailError) {
-      console.error("Error sending email notification through nodemailer:", mailError);
+      }
+
+      // Execute all notifications in parallel
+      await Promise.allSettled(notificationTasks);
+    } catch (error) {
+      console.error("Error processing notifications:", error);
     }
 
     // Still append to notifications.log as a local record/fallback
