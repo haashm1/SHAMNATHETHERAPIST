@@ -496,6 +496,17 @@ async function sendWhatsAppMessage(toPhone, messageText) {
  * Dispatch booking notifications to therapist and client
  */
 export async function sendBookingNotifications(booking, isInitial = false, isMeetLinkOnly = false) {
+  // Never send notification emails for blocked slots or internal dummy placeholders
+  if (
+    booking.status === 'blocked' ||
+    booking.client_email === 'admin@shamna.com' ||
+    booking.client_email === 'blocked-slot@internal' ||
+    (booking.client_name && booking.client_name.startsWith('Blocked Slot'))
+  ) {
+    console.log(`[Notification Skipped] Blocked slot (ID: ${booking.id || 'N/A'}) does not send client or therapist emails.`);
+    return;
+  }
+
   let therapist;
   try {
     therapist = await getProfile(booking.psychologist_id);

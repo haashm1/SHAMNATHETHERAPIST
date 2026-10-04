@@ -81,14 +81,15 @@ export default function AdminBookings({ bookings, onRefresh, onStartCaseSheet, o
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client_name: 'Blocked Slot (Therapist Away)',
-          client_email: 'admin@shamna.com',
+          client_name: 'Blocked Slot (Therapist Offline)',
+          client_email: 'blocked-slot@internal',
           client_phone: 'N/A',
           booking_date: blockDate,
           booking_time: blockTime,
           duration_minutes: 50,
           notes: 'Blocked by therapist',
-          psychologist_id: blockPsychologistId
+          psychologist_id: blockPsychologistId,
+          status: 'blocked'
         })
       });
 
@@ -271,7 +272,10 @@ export default function AdminBookings({ bookings, onRefresh, onStartCaseSheet, o
               {bookings.map((booking) => {
                 const conflictKey = `${booking.booking_date}_${booking.booking_time}_${booking.psychologist_id}`;
                 const hasConflict = booking.status !== 'cancelled' && conflictMap[conflictKey] > 1;
-                const isBlocked = booking.client_email === 'admin@shamna.com';
+                const isBlocked = booking.status === 'blocked' || 
+                                  booking.client_email === 'admin@shamna.com' || 
+                                  booking.client_email === 'blocked-slot@internal' ||
+                                  (booking.client_name && booking.client_name.startsWith('Blocked Slot'));
                 const assignedPsy = psychologists.find(p => p.id === booking.psychologist_id);
 
                 return (

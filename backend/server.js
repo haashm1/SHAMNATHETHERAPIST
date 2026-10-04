@@ -289,7 +289,59 @@ app.get('/api/bookings', async (req, res) => {
 
 // Create Booking (with Conflict Checking)
 app.post('/api/bookings', bookingLimiter, async (req, res) => {
-  const { client_name, client_email, client_phone, booking_date, booking_time, duration_minutes, notes, meet_link, psychologist_id } = req.body;
+  const { client_name, client_email, client_phone, booking_date, booking_time, duration_minutes, notes, meet_link, psychologist_id, status } = req.body;
+
+  const isSlotBlock = status === 'blocked' || 
+                      req.body.is_blocked === true || 
+                      (client_name && client_name.startsWith('Blocked Slot')) ||
+                      client_email === 'admin@shamna.com' ||
+                      client_email === 'blocked-slot@internal';
+
+  if (isSlotBlock) {
+    if (!booking_date || !booking_time) {
+      return res.status(400).json({ error: 'booking_date and booking_time are required to block a slot.' });
+    }
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+    if (!DATE_RE.test(booking_date)) {
+      return res.status(400).json({ error: 'Invalid booking_date format. Use YYYY-MM-DD.' });
+    }
+
+    const activePsyId = psychologist_id ? parseInt(psychologist_id, 10) : 1;
+
+    try {
+      const conflict = await checkBookingConflict(booking_date, booking_time, activePsyId);
+      if (conflict) {
+        return res.status(400).json({
+          error: 'Conflict Detected',
+          message: `The slot on ${booking_date} at ${booking_time} is already booked or blocked for this therapist.`
+        });
+      }
+
+      const newBooking = await createBooking({
+        client_name: 'Blocked Slot (Therapist Offline)',
+        client_email: 'blocked-slot@internal',
+        client_phone: 'N/A',
+        booking_date,
+        booking_time,
+        duration_minutes: duration_minutes ? Number(duration_minutes) : 50,
+        notes: notes || 'Blocked by therapist',
+        meet_link: null,
+        psychologist_id: activePsyId,
+        status: 'blocked'
+      });
+
+      console.log(`[Slot Blocked] Therapist ID ${activePsyId} blocked slot on ${booking_date} at ${booking_time}. No notifications sent.`);
+
+      return res.status(201).json({
+        message: 'Time slot successfully blocked!',
+        bookingId: newBooking.id,
+        booking: newBooking
+      });
+    } catch (err) {
+      console.error("Database error blocking slot:", err);
+      return res.status(500).json({ error: 'Database error blocking slot.' });
+    }
+  }
 
   // Input validation
   if (!client_name || !client_email || !client_phone || !booking_date || !booking_time || !notes) {
@@ -336,7 +388,8 @@ app.post('/api/bookings', bookingLimiter, async (req, res) => {
       duration_minutes,
       notes,
       meet_link: activeMeetLink,
-      psychologist_id: activePsyId
+      psychologist_id: activePsyId,
+      status: 'booked'
     });
 
     // Dispatch mail, mobile SMS, and calendar notifications
@@ -409,8 +462,9 @@ app.patch('/api/bookings/:id', async (req, res) => {
       psychologist_id: newPsyId
     });
 
-    // Trigger notification only on reschedule (date/time change) or therapist change, NOT when only meet_link changes
-    const shouldNotify = (timeChanged || therapistChanged);
+    // Trigger notification only on reschedule (date/time change) or therapist change, NOT when only meet_link changes, and NEVER for blocked slots
+    const isBlockedRecord = currentBooking.status === 'blocked' || newStatus === 'blocked' || currentBooking.client_email === 'blocked-slot@internal' || currentBooking.client_email === 'admin@shamna.com';
+    const shouldNotify = (timeChanged || therapistChanged) && !isBlockedRecord;
 
     if (shouldNotify && newStatus !== 'cancelled') {
       const updatedBooking = {
@@ -552,6 +606,9 @@ app.post('/api/bookings/:id/email-link', async (req, res) => {
     const booking = await getBooking(id);
     if (!booking) {
       return res.status(404).json({ error: 'Booking not found.' });
+    }
+    if (booking.status === 'blocked' || booking.client_email === 'blocked-slot@internal' || booking.client_email === 'admin@shamna.com') {
+      return res.status(400).json({ error: 'Cannot send meeting links for a blocked time slot.' });
     }
     if (!booking.meet_link) {
       return res.status(400).json({ error: 'Cannot send email: No Google Meet link is configured for this booking.' });
