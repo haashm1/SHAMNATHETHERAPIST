@@ -626,7 +626,7 @@ export default function BookingModal({ onClose, prefillData }) {
                     <Video size={18} />
                     <div style={{ textAlign: 'left' }}>
                       <div style={{ fontWeight: 700 }}>Online</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 400, opacity: 0.8 }}>Video / Google Meet</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 400, opacity: 0.8 }}>Video / Worldwide</div>
                     </div>
                   </button>
                   <button
@@ -649,18 +649,18 @@ export default function BookingModal({ onClose, prefillData }) {
                     <MapPin size={18} />
                     <div style={{ textAlign: 'left' }}>
                       <div style={{ fontWeight: 700 }}>In-Person</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 400, opacity: 0.8 }}>Visit the Clinic</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 400, opacity: 0.8 }}>Clinic in Manjeri</div>
                     </div>
                   </button>
                 </div>
                 {consultationMode === 'online' && (
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: '0.5rem' }}>
-                    📹 A Google Meet link will be emailed to you before your session.
+                    🌐 <strong>Worldwide Video Session:</strong> A secure Google Meet link will be emailed to you before your appointment.
                   </p>
                 )}
                 {consultationMode === 'offline' && (
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: '0.5rem' }}>
-                    📍 Please arrive 10 minutes before your scheduled appointment at the clinic.
+                    📍 <strong>Manjeri Clinic Only:</strong> In-person consultations are conducted strictly at our clinic in Manjeri. Please arrive 10 minutes early.
                   </p>
                 )}
               </div>

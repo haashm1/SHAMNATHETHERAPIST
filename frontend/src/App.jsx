@@ -408,7 +408,7 @@ export default function App() {
               Consultant Psychologist &amp; Therapist &middot; Manjeri, Malappuram, Kerala
             </p>
             <p style={{ fontSize: '0.8rem', color: '#8E7E74', marginTop: '0.25rem', maxWidth: '420px', lineHeight: '1.5' }}>
-              Specialised in CBT, mind wellness, anxiety, depression, and relationship counselling. In-person clinic in Manjeri &amp; online therapy across Kerala. Visit <strong style={{ color: '#EBDCCE' }}>www.shamnathetherapist.in</strong>.
+              Specialised in CBT, mind wellness, anxiety, depression, and relationship counselling. In-person clinic exclusively in Manjeri &amp; online therapy available worldwide. Visit <strong style={{ color: '#EBDCCE' }}>www.shamnathetherapist.in</strong>.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>

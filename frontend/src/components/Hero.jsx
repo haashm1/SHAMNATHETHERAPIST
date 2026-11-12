@@ -509,28 +509,28 @@ export default function Hero({ profile, onBookClick, onAdminClick }) {
             <div className="editorial-faq-card scroll-reveal">
               <h3>Who is Consultant Psychologist Shamna in Manjeri?</h3>
               <p>
-                Shamna is a certified consultant psychologist and therapist based in Manjeri, Malappuram (Kerala). Specialising in Cognitive Behavioural Therapy (CBT), emotional wellness, anxiety, depression, and relationship dynamics, she provides confidential care in both <strong>Malayalam and English</strong>.
+                Shamna is a certified consultant psychologist and therapist based in Manjeri, Malappuram (Kerala). Specialising in Cognitive Behavioural Therapy (CBT), emotional wellness, anxiety, depression, and relationship dynamics, she provides confidential offline care at Manjeri and online therapy worldwide in both <strong>Malayalam and English</strong>.
               </p>
             </div>
 
             <div className="editorial-faq-card scroll-reveal">
               <h3>Where is the clinic located &amp; is online therapy available?</h3>
               <p>
-                In-person psychological counselling is held at the clinic in <strong>Manjeri</strong>, conveniently accessible from Malappuram, Perinthalmanna, Kottakkal, and Kozhikode. In addition, secure <strong>online video sessions</strong> are offered across Kerala, India, and worldwide via <strong>www.shamnathetherapist.in</strong>.
+                In-person (offline) psychological counselling is conducted exclusively at our clinic in <strong>Manjeri</strong>, Malappuram district, Kerala (there are no other offline clinic branches). For clients located anywhere else, secure and confidential <strong>online video therapy sessions</strong> are available worldwide across Kerala, India, and internationally via <strong>www.shamnathetherapist.in</strong>.
               </p>
             </div>
 
             <div className="editorial-faq-card scroll-reveal">
               <h3>Are counselling sessions available in Malayalam?</h3>
               <p>
-                Yes. Therapy and psychological assessments are offered fluently in <strong>Malayalam and English</strong>, enabling clients to comfortably communicate and explore emotional healing in their native language.
+                Yes. Therapy and psychological assessments are offered fluently in <strong>Malayalam and English</strong>, enabling clients across Kerala and the global Malayali diaspora to comfortably communicate and explore emotional healing in their native language.
               </p>
             </div>
 
             <div className="editorial-faq-card scroll-reveal">
               <h3>How can I book an appointment with therapist Shamna?</h3>
               <p>
-                Booking is instant. Click <strong>&quot;Book a Consultation&quot;</strong> on this website to view real-time available slots, choose between in-person clinic or online video consultation, and receive your appointment confirmation immediately.
+                Booking is instant. Click <strong>&quot;Book a Consultation&quot;</strong> on this website to view real-time available slots, choose between an offline visit at the Manjeri clinic or a worldwide online video consultation, and receive your appointment confirmation immediately.
               </p>
             </div>
           </div>
